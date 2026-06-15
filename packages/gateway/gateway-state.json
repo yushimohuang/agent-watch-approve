@@ -1,0 +1,766 @@
+{
+  "users": [
+    {
+      "id": "local-user",
+      "email": "local-user@localhost",
+      "passwordHash": null,
+      "displayName": "local-user",
+      "emailVerified": true,
+      "mfaEnabled": false,
+      "isLocal": true,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T11:06:17.468Z",
+      "isActive": true
+    },
+    {
+      "id": "816d59a6-438f-417f-b025-94dcf678b1ed",
+      "email": "e2e_1781521896260@test.local",
+      "passwordHash": "$2a$12$OkWMir20NgGgJo4TRwJO6O9LEWcvop2QP4dhee.O3FutJ3bPMffZK",
+      "displayName": "e2e_1781521896260",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T11:11:36.624Z",
+      "isActive": true
+    },
+    {
+      "id": "28a68266-bae3-4992-84ce-fb2ab2c5cb92",
+      "email": "trae_test_1781522074862@test.local",
+      "passwordHash": "$2a$12$Eq8zNkjVMDFc.VJde1sh5OMVn9WqBs9UMxcm4Uhoea.MEGuhJiRhm",
+      "displayName": "trae_test_1781522074862",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T11:14:35.214Z",
+      "isActive": true
+    },
+    {
+      "id": "4a2ccc20-dfa9-4e01-986a-920369312e63",
+      "email": "e2e-1781528192479@example.com",
+      "passwordHash": "$2a$12$Xh8UHl4GTiHtGvqT4M.uzeoCDoJ2Yidf4DgjDUY8gKP2it.Pl9qcu",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T12:56:32.874Z",
+      "isActive": true
+    },
+    {
+      "id": "576f08ea-86b7-42a1-ada7-2c0af0251fac",
+      "email": "e2e-1781528239689@example.com",
+      "passwordHash": "$2a$12$SPTOee7dpHnA5wObMO0zpu4faXpmAzEKzm9DW1L2W4cXSl7FvLa8i",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T12:57:20.150Z",
+      "isActive": true
+    },
+    {
+      "id": "319cd2c6-bda7-4975-8570-dbe725fbc366",
+      "email": "e2e-1781528438365@example.com",
+      "passwordHash": "$2a$12$kF7V5GD8UCrpFqJRlnQqquHmKYWkqhEyRQsnK5EKf1oFx0AOY8rAq",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T13:00:38.827Z",
+      "isActive": true
+    },
+    {
+      "id": "8458f982-6f0f-4589-96e1-1cc2c7cc16ac",
+      "email": "e2e-1781528487874@example.com",
+      "passwordHash": "$2a$12$q4p98mPFPRCv0TUSopdi2eaiVwWQXSs2SAyvA3u4lT4eSvH220dUu",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T13:01:28.339Z",
+      "isActive": true
+    },
+    {
+      "id": "8c0ab398-631c-4054-b000-8958e00323db",
+      "email": "e2e-1781528568725@example.com",
+      "passwordHash": "$2a$12$oqBEywqkNLXKqsf0yi.1kOGgRtfZQz8xwlIrtheWlCL14m3fRdbQC",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T13:02:49.199Z",
+      "isActive": true
+    },
+    {
+      "id": "01ff47c8-c66d-42bc-ba51-fef02cb27bb6",
+      "email": "e2e-1781528630859@example.com",
+      "passwordHash": "$2a$12$NJmW5eaYpmws4DCvvRbPku.QwNY6IRtTzdnMVtdSFU6ePliVfL4Ey",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T13:03:51.305Z",
+      "isActive": true
+    },
+    {
+      "id": "d4558a8f-e08f-404e-b1eb-423c1c84579b",
+      "email": "e2e-1781531494230@example.com",
+      "passwordHash": "$2a$12$cE7KXskYTdviuV4Y4HpomuLEv05QKvEwXWqA2iMfAjD459eEWbC/u",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T13:51:34.618Z",
+      "isActive": true
+    },
+    {
+      "id": "9eecab04-b015-4f63-8157-957f4f5d6016",
+      "email": "e2e-1781531834212@example.com",
+      "passwordHash": "$2a$12$mor30qiMx7oWKX2nCtfaQeiNh8IcktIhGkKIMnqJc8Eu9dL0EakvG",
+      "displayName": "E2E User",
+      "emailVerified": false,
+      "mfaEnabled": false,
+      "settings": {
+        "notificationsEnabled": true,
+        "defaultApprovalTimeout": 300,
+        "theme": "system"
+      },
+      "createdAt": "2026-06-15T13:57:14.662Z",
+      "isActive": true
+    }
+  ],
+  "sessions": [],
+  "policies": [],
+  "approvals": [
+    {
+      "id": "89ba3145-1b97-473c-ac6c-8357884573f1",
+      "sessionId": "e2e_test_session",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install",
+        "express"
+      ],
+      "reason": "E2E test approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T11:11:36.638Z",
+      "expiresAt": "2026-06-15T11:16:36.638Z",
+      "userId": "816d59a6-438f-417f-b025-94dcf678b1ed",
+      "riskLevel": "medium",
+      "decidedBy": "816d59a6-438f-417f-b025-94dcf678b1ed",
+      "decidedAt": "2026-06-15T11:11:36.648Z"
+    },
+    {
+      "id": "e9dab2c2-f3bb-40ab-a1de-d27f250fc587",
+      "sessionId": "efa841d8-d3a4-470c-8e9c-e5d8f5622647",
+      "approvalType": "exec_approval",
+      "reason": "Agent triggered approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T11:21:08.501Z",
+      "expiresAt": "2026-06-15T11:26:08.501Z",
+      "userId": "local-user",
+      "riskLevel": "high",
+      "decidedBy": "local-user",
+      "decidedAt": "2026-06-15T11:21:11.017Z"
+    },
+    {
+      "id": "a8321b86-1039-4e1e-ae4e-d26ea246845a",
+      "sessionId": "c28e3dda-4043-449d-96a8-59f82535c222",
+      "approvalType": "exec_approval",
+      "reason": "Agent triggered approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T11:31:20.619Z",
+      "expiresAt": "2026-06-15T11:36:20.619Z",
+      "userId": "local-user",
+      "riskLevel": "high",
+      "decidedBy": "local-user",
+      "decidedAt": "2026-06-15T11:31:23.128Z"
+    },
+    {
+      "id": "ece58d02-f1ba-4a8e-b649-ef2930c9d7a7",
+      "sessionId": "sess-1781528193337",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:56:33.340Z",
+      "expiresAt": "2026-06-15T13:01:33.340Z",
+      "decidedBy": "4a2ccc20-dfa9-4e01-986a-920369312e63",
+      "decidedAt": "2026-06-15T12:56:33.352Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "87369124-4da2-40c3-b8e3-275d22ae43fe",
+      "sessionId": "sess-deny-1781528193359",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:56:33.361Z",
+      "expiresAt": "2026-06-15T13:01:33.361Z",
+      "decidedBy": "4a2ccc20-dfa9-4e01-986a-920369312e63",
+      "decidedAt": "2026-06-15T12:56:33.363Z"
+    },
+    {
+      "id": "7fc22f0a-2afa-4958-8590-f34069e35c9c",
+      "sessionId": "sess-poll-1781528193369",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:56:33.371Z",
+      "expiresAt": "2026-06-15T13:01:33.371Z",
+      "decidedBy": "4a2ccc20-dfa9-4e01-986a-920369312e63",
+      "decidedAt": "2026-06-15T12:56:33.377Z"
+    },
+    {
+      "id": "981f5a06-6d97-45bf-84ea-62805ccfe37c",
+      "sessionId": "sess-time-1781528193382",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:56:33.384Z",
+      "expiresAt": "2026-06-15T13:01:33.384Z",
+      "decidedBy": "4a2ccc20-dfa9-4e01-986a-920369312e63",
+      "decidedAt": "2026-06-15T12:56:33.388Z"
+    },
+    {
+      "id": "4b045d2a-f8ce-46ed-9112-a75562fc7b3c",
+      "sessionId": "sess-1781528240280",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:57:20.284Z",
+      "expiresAt": "2026-06-15T13:02:20.284Z",
+      "decidedBy": "576f08ea-86b7-42a1-ada7-2c0af0251fac",
+      "decidedAt": "2026-06-15T12:57:20.294Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "827d2c02-41a6-4a01-b7cc-644ceff311e6",
+      "sessionId": "sess-deny-1781528240299",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:57:20.301Z",
+      "expiresAt": "2026-06-15T13:02:20.301Z",
+      "decidedBy": "576f08ea-86b7-42a1-ada7-2c0af0251fac",
+      "decidedAt": "2026-06-15T12:57:20.304Z"
+    },
+    {
+      "id": "78cb1893-34f3-448b-9260-6fc5b7807e3f",
+      "sessionId": "sess-poll-1781528240308",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:57:20.311Z",
+      "expiresAt": "2026-06-15T13:02:20.311Z",
+      "decidedBy": "576f08ea-86b7-42a1-ada7-2c0af0251fac",
+      "decidedAt": "2026-06-15T12:57:20.316Z"
+    },
+    {
+      "id": "7a654e35-0c2e-4fc1-9d59-f6eaa78b1a0d",
+      "sessionId": "sess-time-1781528240320",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T12:57:20.323Z",
+      "expiresAt": "2026-06-15T13:02:20.323Z",
+      "decidedBy": "576f08ea-86b7-42a1-ada7-2c0af0251fac",
+      "decidedAt": "2026-06-15T12:57:20.327Z"
+    },
+    {
+      "id": "17e95fe0-19d6-4f3c-8499-4bfa380d485f",
+      "sessionId": "sess-1781528439315",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:00:39.318Z",
+      "expiresAt": "2026-06-15T13:05:39.318Z",
+      "decidedBy": "319cd2c6-bda7-4975-8570-dbe725fbc366",
+      "decidedAt": "2026-06-15T13:00:39.331Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "9dd546e6-ffb6-4c27-8fd5-2f868443c911",
+      "sessionId": "sess-deny-1781528439337",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:00:39.340Z",
+      "expiresAt": "2026-06-15T13:05:39.340Z",
+      "decidedBy": "319cd2c6-bda7-4975-8570-dbe725fbc366",
+      "decidedAt": "2026-06-15T13:00:39.345Z"
+    },
+    {
+      "id": "6e1218c3-e98a-4f98-af58-c32f719c0381",
+      "sessionId": "sess-poll-1781528439350",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:00:39.353Z",
+      "expiresAt": "2026-06-15T13:05:39.353Z",
+      "decidedBy": "319cd2c6-bda7-4975-8570-dbe725fbc366",
+      "decidedAt": "2026-06-15T13:00:39.359Z"
+    },
+    {
+      "id": "e6e2409b-4850-4f7f-9fc0-a615eb461a78",
+      "sessionId": "sess-time-1781528439365",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:00:39.367Z",
+      "expiresAt": "2026-06-15T13:05:39.367Z",
+      "decidedBy": "319cd2c6-bda7-4975-8570-dbe725fbc366",
+      "decidedAt": "2026-06-15T13:00:39.372Z"
+    },
+    {
+      "id": "232cb0aa-9e43-4f31-a7e6-248e10a18711",
+      "sessionId": "sess-1781528488471",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:01:28.472Z",
+      "expiresAt": "2026-06-15T13:06:28.472Z",
+      "decidedBy": "8458f982-6f0f-4589-96e1-1cc2c7cc16ac",
+      "decidedAt": "2026-06-15T13:01:28.482Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "11c6b3ec-a8be-477c-8791-bc64f9662f2e",
+      "sessionId": "sess-deny-1781528488487",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:01:28.490Z",
+      "expiresAt": "2026-06-15T13:06:28.490Z",
+      "decidedBy": "8458f982-6f0f-4589-96e1-1cc2c7cc16ac",
+      "decidedAt": "2026-06-15T13:01:28.492Z"
+    },
+    {
+      "id": "7da02be5-7c48-48f9-ac4a-cb883b59aae4",
+      "sessionId": "sess-poll-1781528488496",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:01:28.499Z",
+      "expiresAt": "2026-06-15T13:06:28.499Z",
+      "decidedBy": "8458f982-6f0f-4589-96e1-1cc2c7cc16ac",
+      "decidedAt": "2026-06-15T13:01:28.504Z"
+    },
+    {
+      "id": "b352abbd-a423-4186-b0d1-fe169cfb64f0",
+      "sessionId": "sess-time-1781528488509",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:01:28.511Z",
+      "expiresAt": "2026-06-15T13:06:28.511Z",
+      "decidedBy": "8458f982-6f0f-4589-96e1-1cc2c7cc16ac",
+      "decidedAt": "2026-06-15T13:01:28.515Z"
+    },
+    {
+      "id": "7d0ef955-641b-4cb0-a29c-bdd9e1913215",
+      "sessionId": "sess-1781528569640",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:02:49.644Z",
+      "expiresAt": "2026-06-15T13:07:49.644Z",
+      "decidedBy": "8c0ab398-631c-4054-b000-8958e00323db",
+      "decidedAt": "2026-06-15T13:02:49.654Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "48ead963-16b0-483e-a174-a760e4f35512",
+      "sessionId": "sess-deny-1781528569660",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:02:49.661Z",
+      "expiresAt": "2026-06-15T13:07:49.661Z",
+      "decidedBy": "8c0ab398-631c-4054-b000-8958e00323db",
+      "decidedAt": "2026-06-15T13:02:49.664Z"
+    },
+    {
+      "id": "9dd44159-fdcd-464e-a87a-1cb4af0cf522",
+      "sessionId": "sess-poll-1781528569669",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:02:49.670Z",
+      "expiresAt": "2026-06-15T13:07:49.670Z",
+      "decidedBy": "8c0ab398-631c-4054-b000-8958e00323db",
+      "decidedAt": "2026-06-15T13:02:49.676Z"
+    },
+    {
+      "id": "1ca324a1-13e1-44d8-ab03-fb6ae337daa2",
+      "sessionId": "sess-time-1781528569682",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:02:49.683Z",
+      "expiresAt": "2026-06-15T13:07:49.683Z",
+      "decidedBy": "8c0ab398-631c-4054-b000-8958e00323db",
+      "decidedAt": "2026-06-15T13:02:49.688Z"
+    },
+    {
+      "id": "6f2e4725-321a-43e4-af8d-f175d143caee",
+      "sessionId": "sess-1781528631441",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:03:51.442Z",
+      "expiresAt": "2026-06-15T13:08:51.442Z",
+      "decidedBy": "01ff47c8-c66d-42bc-ba51-fef02cb27bb6",
+      "decidedAt": "2026-06-15T13:03:51.453Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "e2be8ef5-fd24-4b11-8ed3-7ca7a4e4448a",
+      "sessionId": "sess-deny-1781528631459",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:03:51.460Z",
+      "expiresAt": "2026-06-15T13:08:51.460Z",
+      "decidedBy": "01ff47c8-c66d-42bc-ba51-fef02cb27bb6",
+      "decidedAt": "2026-06-15T13:03:51.463Z"
+    },
+    {
+      "id": "cd44dc11-3a32-4595-9443-e1f8722db64b",
+      "sessionId": "sess-poll-1781528631469",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:03:51.470Z",
+      "expiresAt": "2026-06-15T13:08:51.470Z",
+      "decidedBy": "01ff47c8-c66d-42bc-ba51-fef02cb27bb6",
+      "decidedAt": "2026-06-15T13:03:51.476Z"
+    },
+    {
+      "id": "4836b0fe-d103-4d7d-bec5-ca5c3d253415",
+      "sessionId": "sess-time-1781528631482",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:03:51.484Z",
+      "expiresAt": "2026-06-15T13:08:51.484Z",
+      "decidedBy": "01ff47c8-c66d-42bc-ba51-fef02cb27bb6",
+      "decidedAt": "2026-06-15T13:03:51.487Z"
+    },
+    {
+      "id": "dd831211-9f46-4537-b55f-c5dda788d6f9",
+      "sessionId": "sess-1781531494796",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:51:34.798Z",
+      "expiresAt": "2026-06-15T13:56:34.798Z",
+      "decidedBy": "d4558a8f-e08f-404e-b1eb-423c1c84579b",
+      "decidedAt": "2026-06-15T13:51:34.811Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "83438580-8e49-4a2e-839e-03c00ebb55fb",
+      "sessionId": "sess-deny-1781531494818",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:51:34.820Z",
+      "expiresAt": "2026-06-15T13:56:34.820Z",
+      "decidedBy": "d4558a8f-e08f-404e-b1eb-423c1c84579b",
+      "decidedAt": "2026-06-15T13:51:34.824Z"
+    },
+    {
+      "id": "6357ddc4-e345-4a99-8aeb-4749a85f5331",
+      "sessionId": "sess-poll-1781531494831",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:51:34.833Z",
+      "expiresAt": "2026-06-15T13:56:34.833Z",
+      "decidedBy": "d4558a8f-e08f-404e-b1eb-423c1c84579b",
+      "decidedAt": "2026-06-15T13:51:34.839Z"
+    },
+    {
+      "id": "5d54190e-e0f0-418f-8cc8-ebd52720ae8a",
+      "sessionId": "sess-time-1781531494845",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:51:34.847Z",
+      "expiresAt": "2026-06-15T13:56:34.847Z",
+      "decidedBy": "d4558a8f-e08f-404e-b1eb-423c1c84579b",
+      "decidedAt": "2026-06-15T13:51:34.852Z"
+    },
+    {
+      "id": "eb0378b1-ff45-45b7-8772-6dc4bfa9e2fd",
+      "sessionId": "sess-1781531834809",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "node_modules"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:57:14.812Z",
+      "expiresAt": "2026-06-15T14:02:14.812Z",
+      "decidedBy": "9eecab04-b015-4f63-8157-957f4f5d6016",
+      "decidedAt": "2026-06-15T13:57:14.822Z",
+      "userInput": "test approval"
+    },
+    {
+      "id": "a0c1f328-dec4-4c5b-b608-f8770fb1ca11",
+      "sessionId": "sess-deny-1781531834827",
+      "approvalType": "exec_approval",
+      "command": [
+        "git",
+        "push",
+        "--force"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:57:14.829Z",
+      "expiresAt": "2026-06-15T14:02:14.829Z",
+      "decidedBy": "9eecab04-b015-4f63-8157-957f4f5d6016",
+      "decidedAt": "2026-06-15T13:57:14.832Z"
+    },
+    {
+      "id": "d895ca91-c73d-460e-bba5-ef2c0904cb91",
+      "sessionId": "sess-poll-1781531834836",
+      "approvalType": "exec_approval",
+      "command": [
+        "npm",
+        "install"
+      ],
+      "reason": "Command requires user approval",
+      "status": "approved",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:57:14.839Z",
+      "expiresAt": "2026-06-15T14:02:14.839Z",
+      "decidedBy": "9eecab04-b015-4f63-8157-957f4f5d6016",
+      "decidedAt": "2026-06-15T13:57:14.844Z"
+    },
+    {
+      "id": "a4861802-b298-40e0-8753-70a43f9c736c",
+      "sessionId": "sess-time-1781531834847",
+      "approvalType": "exec_approval",
+      "command": [
+        "rm",
+        "-rf",
+        "/etc"
+      ],
+      "reason": "Command requires user approval",
+      "status": "denied",
+      "timeoutSeconds": 300,
+      "createdAt": "2026-06-15T13:57:14.851Z",
+      "expiresAt": "2026-06-15T14:02:14.851Z",
+      "decidedBy": "9eecab04-b015-4f63-8157-957f4f5d6016",
+      "decidedAt": "2026-06-15T13:57:14.856Z"
+    }
+  ],
+  "lastSaved": "2026-06-15T13:57:18.847Z"
+}
