@@ -1,0 +1,90 @@
+# ============================================================
+# Agent Watch - Docker Compose 一键部署
+#
+# 用法:
+#   docker-compose up -d              # 启动所有服务
+#   docker-compose up -d --build      # 重新构建并启动
+#   docker-compose logs -f gateway    # 查看 gateway 日志
+#   docker-compose down               # 停止所有服务
+# ============================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================
+  # Gateway - API + WebSocket + 推送服务
+  # ==========================================================
+  gateway:
+    build:
+      context: ./packages/gateway
+      dockerfile: Dockerfile
+    container_name: agent-watch-gateway
+    ports:
+      - '${GATEWAY_PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # CORS
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://${PUBLIC_URL}}
+      # JWT（强制 32+ 字符，建议 `openssl rand -hex 32`）
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET is required in production. Run: openssl rand -hex 32}
+      - JWT_ACCESS_TTL=${JWT_ACCESS_TTL:-900}
+      - JWT_REFRESH_TTL=${JWT_REFRESH_TTL:-2592000}
+      # Redis
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      # 飞书（唯一推送通道）
+      - FEISHU_ENABLED=${FEISHU_ENABLED:-false}
+      - FEISHU_APP_ID=${FEISHU_APP_ID:-}
+      - FEISHU_APP_SECRET=${FEISHU_APP_SECRET:-}
+      - FEISHU_VERIFICATION_TOKEN=${FEISHU_VERIFICATION_TOKEN:-}
+      - FEISHU_ENCRYPT_KEY=${FEISHU_ENCRYPT_KEY:-}
+      - FEISHU_API_BASE_URL=${FEISHU_API_BASE_URL:-https://open.feishu.cn/open-apis}
+      - FEISHU_USER_OPEN_ID_MAP=${FEISHU_USER_OPEN_ID_MAP:-{}}
+      # 公网 URL
+      - PUBLIC_URL=${PUBLIC_URL:-http://localhost:3000}
+      - LOCAL_USER_NAME=${LOCAL_USER_NAME:-local-user}
+      # Rate Limit
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-60000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      # Approval
+      - APPROVAL_TIMEOUT=${APPROVAL_TIMEOUT:-300}
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'node', '-e', "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agent-watch
+    depends_on:
+      redis:
+        condition: service_started
+  # ==========================================================
+  # Redis - 缓存 + 会话存储
+  # ==========================================================
+  redis:
+    image: redis:7-alpine
+    container_name: agent-watch-redis
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - agent-watch
+    command: redis-server --appendonly yes ${REDIS_PASSWORD:+--requirepass $REDIS_PASSWORD}
+
+networks:
+  agent-watch:
+    driver: bridge
+
+volumes:
+  redis_data:
+    driver: local

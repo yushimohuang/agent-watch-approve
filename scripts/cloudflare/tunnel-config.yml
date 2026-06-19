@@ -1,0 +1,57 @@
+# Cloudflare Tunnel 配置文件
+#
+# 这个文件告诉 cloudflared：
+# 1. 你的隧道 ID（创建隧道时生成）
+# 2. 把哪个公网域名映射到哪个本地端口
+# 3. 凭证文件路径
+#
+# === 一次性安装 ===
+#
+# 1. 安装 cloudflared (Windows)
+#    winget install Cloudflare.cloudflared
+#    # 或者直接下载：
+#    # https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe
+#
+# 2. 登录 Cloudflare（会打开浏览器）
+#    cloudflared tunnel login
+#
+# 3. 创建隧道（一次性）
+#    cloudflared tunnel create agent-watch
+#    # 会输出：Tunnel credentials written to C:\Users\<you>\.cloudflared\<UUID>.json
+#    # 并打印 Tunnel ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+#
+# 4. 配置 DNS（把域名指向隧道）
+#    cloudflared tunnel route dns agent-watch agent.yourdomain.com
+#    # 临时域名（免 domain）：用 trycloudflare.com
+#    cloudflared tunnel --url http://localhost:3000
+#    # 会输出 https://xxxx.trycloudflare.com
+#
+# 5. 启动隧道
+#    cloudflared tunnel run agent-watch
+#    # 或者用本目录的 start-tunnel.ps1
+
+tunnel: agent-watch
+credentials-file: C:\Users\%USERNAME%\.cloudflared\agent-watch.json
+
+# 入口：把 agent.yourdomain.com → http://localhost:3000
+ingress:
+  - hostname: agent.yourdomain.com
+    service: http://localhost:3000
+    originRequest:
+      noTLSVerify: true
+      connectTimeout: 10s
+      noHappyEyeballs: true
+      keepAliveConnections: 16
+      keepAliveTimeout: 90s
+      httpHostHeader: localhost:3000
+
+  # 健康检查（备用）
+  - service: http_status:404
+    # catch-all：返回 404，避免暴露其它服务
+
+# 日志配置
+loglevel: info
+logfile: C:\Users\%USERNAME%\.cloudflared\agent-watch-tunnel.log
+
+# 指标（可选）
+metrics: localhost:2000

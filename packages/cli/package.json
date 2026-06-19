@@ -1,0 +1,28 @@
+{
+  "name": "agent-watch-approve-cli",
+  "version": "1.0.0",
+  "description": "Agent Watch Approve CLI - 远程审批工具",
+  "main": "agent-watch-approve.js",
+  "bin": {
+    "agent-watch-approve": "./agent-watch-approve.js"
+  },
+  "scripts": {
+    "start": "node agent-watch-approve.js"
+  },
+  "keywords": [
+    "agent-watch",
+    "approval",
+    "ai-agent",
+    "claude-code",
+    "codebuddy",
+    "qoder"
+  ],
+  "author": "Agent Watch Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  },
+  "devDependencies": {
+    "tsx": "^4.15.0"
+  }
+}

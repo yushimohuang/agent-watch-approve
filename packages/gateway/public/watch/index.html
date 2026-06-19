@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="browsermode" content="application">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="theme-color" content="#1976d2">
+  <title>Agent Watch Approve</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 圆屏手表适配（华为 GT、OPPO Watch） */
+    .container {
+      max-width: 100%;
+      max-height: 100%;
+      margin: 0 auto;
+      padding: 8px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 状态栏 */
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 4px;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    .status-online { background: #4caf50; animation: pulse 2s infinite; }
+    .status-offline { background: #f44336; }
+
+    /* 审批卡片 */
+    .approval-card {
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .approval-header {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .platform-badge {
+      background: #1976d2;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    .urgent-badge {
+      background: #d32f2f;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .command-box {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-family: "SF Mono", Monaco, Consolas, monospace;
+      font-size: 11px;
+      margin-bottom: 6px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 60px;
+      overflow-y: auto;
+    }
+
+    .description {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .risk-level {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .risk-low { background: #e8f5e9; color: #2e7d32; }
+    .risk-medium { background: #fff3e0; color: #ef6c00; }
+    .risk-high { background: #ffebee; color: #c62828; }
+    .risk-critical {
+      background: #c62828;
+      color: #fff;
+      animation: pulse 1.5s infinite;
+    }
+
+    .timeout-bar {
+      width: 100%;
+      height: 3px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .timeout-progress {
+      height: 100%;
+      background: linear-gradient(90deg, #4caf50, #ff9800, #f44336);
+      transition: width 1s linear;
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .btn {
+      padding: 10px 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      min-height: 36px;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-approve { background: #4caf50; color: #fff; }
+    .btn-deny { background: #f44336; color: #fff; }
+
+    /* 空状态 */
+    .empty {
+      text-align: center;
+      padding: 20px 8px;
+      opacity: 0.9;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .empty-text {
+      font-size: 13px;
+    }
+
+    /* 登录 */
+    .login {
+      text-align: center;
+      padding: 20px 8px;
+    }
+
+    .login h1 {
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+
+    .login p {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 12px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 6px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 10px;
+      background: #fff;
+      color: #1976d2;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    /* ============================================
+       平台适配
+    ============================================ */
+
+    /* 华为 GT 系列（466x466 圆屏） */
+    @media (max-width: 466px) and (max-height: 466px) {
+      body { font-size: 14px; }
+      .container { padding: 6px; }
+      .approval-card { padding: 8px; }
+      .command-box { font-size: 10px; }
+    }
+
+    /* 鸿蒙 4+ 圆屏手表 */
+    .harmonyos body {
+      /* 鸿蒙系统字体 */
+      font-family: "HarmonyOS Sans", "Source Han Sans", sans-serif;
+    }
+
+    /* 小米 Watch S 系列（480x480） */
+    .xiaomi body {
+      font-family: "MiSans", "HarmonyOS Sans", sans-serif;
+    }
+
+    /* 超小屏幕（< 240px） */
+    @media (max-width: 240px) {
+      body { font-size: 10px; }
+      .container { padding: 4px; }
+      .approval-card { padding: 6px; }
+      .btn { padding: 6px 4px; font-size: 11px; }
+      .command-box { font-size: 9px; }
+    }
+
+    /* 大屏手表（OPPO Watch 500x500） */
+    @media (min-width: 481px) {
+      body { font-size: 16px; }
+      .approval-card { padding: 12px; }
+      .btn { padding: 14px 12px; font-size: 14px; }
+    }
+
+    /* 横屏手表 */
+    @media (orientation: landscape) {
+      .container { padding: 6px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="app"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ============================================
+    // 配置
+    // ============================================
+    const GATEWAY_URL = window.location.origin.includes('localhost')
+      ? 'http://localhost:3000'
+      : window.location.origin;
+
+    const STORAGE_KEYS = {
+      session: 'agent_watch_session',
+      gateway: 'agent_watch_gateway',
+      user: 'agent_watch_user',
+    };
+
+    // ============================================
+    // 平台检测
+    // ============================================
+    function detectPlatform() {
+      const ua = navigator.userAgent;
+      let platform = 'unknown';
+
+      if (ua.includes('Watch') || ua.includes('Wearable') ||
+          ua.includes('Mobile') && ua.includes('Watch')) {
+        if (ua.includes('HarmonyOS') || ua.includes('HUAWEI') || ua.includes('WatchGT')) {
+          platform = 'huawei';
+        } else if (ua.includes('MIUI') || ua.includes('MiWatch') || ua.includes('Xiaomi')) {
+          platform = 'xiaomi';
+        } else if (ua.includes('ColorOS') || ua.includes('OPPO')) {
+          platform = 'oppo';
+        } else if (ua.includes('OriginOS') || ua.includes('vivo')) {
+          platform = 'vivo';
+        } else if (ua.includes('watchOS') || ua.includes('AppleWatch')) {
+          platform = 'apple';
+        } else if (ua.includes('Wear OS') || ua.includes('Android')) {
+          platform = 'wearos';
+        } else {
+          platform = 'smartwatch';
+        }
+      }
+
+      return platform;
+    }
+
+    // 应用平台特定 class
+    const platform = detectPlatform();
+    document.body.classList.add(platform);
+    console.log('Detected platform:', platform);
+
+    // ============================================
+    // 状态管理
+    // ============================================
+    let state = {
+      connected: false,
+      sessionId: localStorage.getItem(STORAGE_KEYS.session),
+      userId: localStorage.getItem(STORAGE_KEYS.user),
+      pendingApprovals: [],
+      ws: null,
+      platform: platform,
+    };
+
+    // ============================================
+    // 工具函数
+    // ============================================
+    function showToast(msg, duration = 2000) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function getDeviceName() {
+      const names = {
+        huawei: 'Huawei Watch',
+        xiaomi: 'Mi Watch',
+        oppo: 'OPPO Watch',
+        vivo: 'vivo Watch',
+        apple: 'Apple Watch',
+        wearos: 'Wear OS',
+        smartwatch: 'Smart Watch',
+      };
+      return names[state.platform] || 'Watch';
+    }
+
+    // 振动
+    function vibrate(pattern = [200]) {
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    }
+
+    // ============================================
+    // 渲染
+    // ============================================
+    function renderLogin() {
+      const app = document.getElementById('app');
+      app.innerHTML = `
+        <div class="login">
+          <h1>⌚ Agent Watch Approve</h1>
+          <p>用手机 Agent Watch Approve App 扫码登录</p>
+          <input type="text" id="gatewayInput" class="login-input" placeholder="Gateway 地址" value="${GATEWAY_URL}">
+          <input type="text" id="tokenInput" class="login-input" placeholder="Token（从手机 App 获取）">
+          <button class="login-btn" id="loginBtn">连接</button>
+          <p style="margin-top:12px; font-size:10px; opacity:0.7;">检测到平台：${state.platform}</p>
+        </div>
+      `;
+      document.getElementById('loginBtn').addEventListener('click', manualLogin);
+    }
+
+    function renderHome() {
+      const app = document.getElementById('app');
+
+      const statusHtml = `
+        <div class="status-bar">
+          <div>
+            <span class="status-dot ${state.connected ? 'status-online' : 'status-offline'}"></span>
+            <span>${state.connected ? '已连接' : '未连接'}</span>
+          </div>
+          <span>${state.pendingApprovals.length} 个待审批</span>
+        </div>
+      `;
+
+      if (state.pendingApprovals.length === 0) {
+        app.innerHTML = statusHtml + `
+          <div class="empty">
+            <div class="empty-icon">📭</div>
+            <div class="empty-text">暂无待审批任务</div>
+            <div class="empty-text" style="margin-top:4px; font-size:11px; opacity:0.7;">
+              当 AI 触发敏感操作时会通知你
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const cards = state.pendingApprovals.map(renderCard).join('');
+      app.innerHTML = statusHtml + cards;
+
+      // 启动倒计时
+      state.pendingApprovals.forEach(a => startCountdown(a));
+    }
+
+    function renderCard(approval) {
+      const isUrgent = approval.riskLevel === 'high' || approval.riskLevel === 'critical';
+      return `
+        <div class="approval-card" data-id="${approval.id}">
+          <div class="approval-header">
+            <span class="platform-badge">${approval.platform}</span>
+            ${isUrgent ? '<span class="urgent-badge">紧急</span>' : ''}
+          </div>
+          <div class="command-box">${escapeHtml(approval.command)}</div>
+          <div class="description">${escapeHtml(approval.description)}</div>
+          <span class="risk-level risk-${approval.riskLevel}">
+            风险：${riskText(approval.riskLevel)}
+          </span>
+          <div class="timeout-bar">
+            <div class="timeout-progress" id="progress-${approval.id}"></div>
+          </div>
+          <div class="button-group">
+            <button class="btn btn-approve" onclick="decide('${approval.id}', 'approve')">✓ 批准</button>
+            <button class="btn btn-deny" onclick="decide('${approval.id}', 'deny')">✕ 拒绝</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function riskText(level) {
+      return { low: '低', medium: '中', high: '高', critical: '严重' }[level] || level;
+    }
+
+    // ============================================
+    // 倒计时
+    // ============================================
+    function startCountdown(approval) {
+      const interval = setInterval(() => {
+        const expiresAt = approval.requestedAt + approval.timeoutMs;
+        const remaining = Math.max(0, expiresAt - Date.now());
+        const percent = (remaining / approval.timeoutMs * 100);
+
+        const progress = document.getElementById(`progress-${approval.id}`);
+        if (progress) {
+          progress.style.width = percent + '%';
+        }
+
+        if (remaining <= 0) {
+          clearInterval(interval);
+          decide(approval.id, 'timeout');
+        }
+      }, 1000);
+    }
+
+    // ============================================
+    // 决策
+    // ============================================
+    async function decide(approvalId, decision) {
+      try {
+        // 禁用按钮
+        const card = document.querySelector(`[data-id="${approvalId}"]`);
+        if (card) {
+          card.querySelectorAll('button').forEach(b => b.disabled = true);
+        }
+
+        // 振动反馈
+        vibrate([50]);
+
+        // 发送决策
+        if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+          state.ws.send(JSON.stringify({
+            type: 'approval_decision',
+            approvalId,
+            decision,
+            device: 'watch',
+          }));
+        }
+
+        // HTTP 兜底
+        const gateway = localStorage.getItem(STORAGE_KEYS.gateway) || GATEWAY_URL;
+        await fetch(`${gateway}/v1/approvals/${approvalId}/decide`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${state.sessionId}`,
+          },
+          body: JSON.stringify({
+            decision,
+            device: 'watch',
+            deviceName: getDeviceName(),
+          }),
+        });
+
+        // 移除
+        state.pendingApprovals = state.pendingApprovals.filter(a => a.id !== approvalId);
+        if (card) card.remove();
+
+        showToast(decision === 'approve' ? '已批准' : decision === 'deny' ? '已拒绝' : '已超时');
+
+        if (state.pendingApprovals.length === 0) {
+          renderHome();
+        }
+      } catch (e) {
+        showToast('决策失败: ' + e.message);
+      }
+    }
+
+    // ============================================
+    // WebSocket
+    // ============================================
+    function connectWebSocket() {
+      const gateway = localStorage.getItem(STORAGE_KEYS.gateway) || GATEWAY_URL;
+      const wsUrl = gateway.replace(/^http/, 'ws') + `/ws?sessionId=${state.sessionId}&device=watch`;
+
+      try {
+        state.ws = new WebSocket(wsUrl);
+      } catch (e) {
+        showToast('连接失败');
+        return;
+      }
+
+      state.ws.onopen = () => {
+        state.connected = true;
+        renderHome();
+      };
+
+      state.ws.onclose = () => {
+        state.connected = false;
+        renderHome();
+        setTimeout(connectWebSocket, 5000);
+      };
+
+      state.ws.onerror = () => {
+        // ignore
+      };
+
+      state.ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          handleMessage(msg);
+        } catch (e) {
+          // ignore
+        }
+      };
+    }
+
+    function handleMessage(msg) {
+      switch (msg.type) {
+        case 'approval_request':
+          state.pendingApprovals.push(msg.payload);
+          renderHome();
+          vibrate(msg.payload.isUrgent ? [200, 100, 200] : [200]);
+          break;
+        case 'approval_resolved':
+          state.pendingApprovals = state.pendingApprovals.filter(a => a.id !== msg.approvalId);
+          renderHome();
+          break;
+        case 'ping':
+          if (state.ws) state.ws.send(JSON.stringify({ type: 'pong' }));
+          break;
+      }
+    }
+
+    // ============================================
+    // 登录
+    // ============================================
+    function manualLogin() {
+      const gateway = document.getElementById('gatewayInput').value.trim();
+      const token = document.getElementById('tokenInput').value.trim();
+
+      if (!gateway || !token) {
+        showToast('请填写完整');
+        return;
+      }
+
+      localStorage.setItem(STORAGE_KEYS.gateway, gateway);
+      localStorage.setItem(STORAGE_KEYS.session, token);
+      state.sessionId = token;
+
+      connectWebSocket();
+      renderHome();
+      showToast('登录成功');
+    }
+
+    // ============================================
+    // 启动
+    // ============================================
+    function init() {
+      if (!state.sessionId) {
+        renderLogin();
+      } else {
+        connectWebSocket();
+        renderHome();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
