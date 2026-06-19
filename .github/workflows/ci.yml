@@ -58,6 +58,3 @@ jobs:
 
       - name: Build gateway
         run: cd packages/gateway && npx tsc --build
-
-      - name: Build dashboard
-        run: cd packages/dashboard && npx next build
