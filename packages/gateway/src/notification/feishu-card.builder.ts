@@ -140,7 +140,7 @@ export function buildApprovalCard(params: {
     ? '⚠️ [紧急] AI 需要你的批准'
     : `${risk.emoji} ${risk.label}：AI 需要你的批准`;
 
-  const minutesLeft = Math.max(0, Math.round((expiresAt.getTime() - Date.now()) / 60000));
+  const minutesLeft = Math.max(0, Math.round((params.expiresAt - Date.now()) / 60000));
 
   // 主操作按钮 - callback 模式（手机/PC 上点击后飞书回调 webhook）
   const callbackActions: FeishuCardButton[] = [
