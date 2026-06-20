@@ -16,13 +16,6 @@
  */
 
 import { Command } from 'commander';
-import { LoginCommand } from './commands/login';
-import { LogoutCommand } from './commands/logout';
-import { StatusCommand } from './commands/status';
-import { StartCommand } from './commands/start';
-import { DevicesCommand } from './commands/devices';
-import { ConfigCommand } from './commands/config';
-import { InstallCommand } from './commands/install';
 import { version } from '../package.json' assert { type: 'json' };
 
 const program = new Command();
@@ -35,7 +28,7 @@ program
   .version(version)
   .option('-v, --verbose', 'Enable verbose logging')
   .option('-c, --config <path>', 'Config file path')
-  .hook('preAction', (thisCommand) => {
+  .hook('preAction', (thisCommand: Command) => {
     const opts = thisCommand.opts();
     if (opts.verbose) {
       process.env.AGENT_WATCH_APPROVE_VERBOSE = '1';
@@ -43,13 +36,8 @@ program
   });
 
 // Register commands
-program.addCommand(LoginCommand);
-program.addCommand(LogoutCommand);
-program.addCommand(StatusCommand);
-program.addCommand(DevicesCommand);
-program.addCommand(ConfigCommand);
+import { InstallCommand } from './commands/install';
 program.addCommand(InstallCommand);
-program.addCommand(StartCommand);
 
 // Handle errors
 program.on('command:*', () => {

@@ -68,7 +68,7 @@ function printStatus(email?: string) {
   console.log(chalk.bold('Commands:'));
   console.log(chalk.gray('  agentapprove start codex    '), '- Start Codex with monitoring');
   console.log(chalk.gray('  agentapprove devices        '), '- Manage paired devices');
-  console.log(chalk.gray('  agentapprove logout        '), '- Logout\n'));
+  console.log(chalk.gray('  agentapprove logout        '), '- Logout');
 }
 
 async function checkServerStatus(api: ApiClient): Promise<string> {

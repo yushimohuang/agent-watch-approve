@@ -119,7 +119,14 @@ async function installClaudeCode(ctx: InstallOptions): Promise<InstallResult> {
 
   try {
     const settings = await loadSettings(settingsPath);
-    const ctx2: InstallContext = { ...ctx, filePath: settingsPath, dirPath: claudeDir, settings };
+    const ctx2: InstallContext = {
+      uninstall: ctx.uninstall ?? false,
+      dryRun: ctx.dryRun ?? false,
+      force: ctx.force ?? false,
+      filePath: settingsPath,
+      dirPath: claudeDir,
+      settings,
+    };
 
     const hookEntry = buildClaudeHookEntry(hookBin);
 
@@ -220,7 +227,14 @@ async function installCursor(ctx: InstallOptions): Promise<InstallResult> {
 
   try {
     const hooks = await loadCursorHooks(hooksPath);
-    const ctx2: InstallContext = { ...ctx, filePath: hooksPath, dirPath: cursorDir, settings: hooks };
+    const ctx2: InstallContext = {
+      uninstall: ctx.uninstall ?? false,
+      dryRun: ctx.dryRun ?? false,
+      force: ctx.force ?? false,
+      filePath: hooksPath,
+      dirPath: cursorDir,
+      settings: hooks,
+    };
 
     const hookEntry = buildCursorHookEntry(hookBin);
 

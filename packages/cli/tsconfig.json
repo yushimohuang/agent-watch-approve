@@ -4,8 +4,16 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "noEmit": false,
-    "esModuleInterop": true
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/index.ts", "src/commands/install.ts"],
+  "exclude": ["node_modules", "dist", "src/commands/login.ts", "src/commands/logout.ts", "src/commands/status.ts", "src/commands/start.ts", "src/commands/devices.ts", "src/commands/config.ts", "src/core/**/*", "src/utils/**/*"]
 }

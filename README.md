@@ -59,11 +59,19 @@ cd agent-watch-approve
 # 安装依赖
 pnpm install
 
+# 构建 CLI（agentapprove install 等 TS 源码命令需要先 build）
+pnpm --filter @agent-watch/cli build
+# 或一次性构建所有包：pnpm build
+
 # 启动 Gateway（自动加载最新代码）
 cd packages/gateway && pnpm dev
 # → http://localhost:3000
 
-# 新终端：安装 IDE Hook（Claude Code + Cursor）
+# 新终端：将 agentapprove 链接到 PATH（首次使用）
+pnpm --filter @agent-watch/cli link --global
+# 也可执行 node packages/cli/dist/index.js 来运行命令
+
+# 安装 IDE Hook（Claude Code + Cursor）
 agentapprove install
 # → Claude Code: ~/.claude/settings.json
 # → Cursor: ~/.cursor/hooks.json
@@ -145,13 +153,15 @@ npx tsx src/seed-approvals.ts test-user
 |-------|------|-----------|---------|
 | **Claude Code** | 海外 | `PreToolUse` | `agentapprove install claude` |
 | **Cursor** | 海外 | `beforeShellExecution` / `beforeMCPExecution` | `agentapprove install cursor` |
-| **Codex** | 海外 | 内置 approval prompt | `agentapprove start codex` |
-| **Trae** | 国产 | MCP Proxy + 进程监控 | `agentapprove start trae` |
-| **CodeBuddy** | 国产 | 7 个事件 Hook | `agentapprove install --all` |
-| **Qoder CN** | 国产 | `~/.lingma/settings.json` | `agentapprove install --all` |
-| **MiMo Code** | 国产 | `mimocode.json` | `agentapprove install --all` |
-| **MiniMax** | 国产 | `~/.mmx/config.json` | `agentapprove install --all` |
-| **文心快码** | 国产 | `.comate/mcp.json` | `agentapprove install --all` |
+| **Codex** | 海外 | 内置 approval prompt | `node packages/cli/bin/agent-watch-hook.js` *(CLI `start` 命令未在 v1 build)* |
+| **Trae** | 国产 | MCP Proxy + 进程监控 | `node packages/cli/bin/agent-watch-adapter.js` *(见 docs/TRAE-DUAL-LAYER.md)* |
+| **CodeBuddy** | 国产 | 7 个事件 Hook | `agentapprove install --all` *(计划中)* |
+| **Qoder CN** | 国产 | `~/.lingma/settings.json` | `agentapprove install --all` *(计划中)* |
+| **MiMo Code** | 国产 | `mimocode.json` | `agentapprove install --all` *(计划中)* |
+| **MiniMax** | 国产 | `~/.mmx/config.json` | `agentapprove install --all` *(计划中)* |
+| **文心快码** | 国产 | `.comate/mcp.json` | `agentapprove install --all` *(计划中)* |
+
+> ⚠️ 当前 `agentapprove install` 命令已实现：`claude` / `cursor`（默认装两者）。表格中标注「计划中」的适配器在 `packages/gateway/src/agents/` 已有服务侧实现，CLI install 路径将在后续版本补齐。
 
 ### 一键安装 Hook（Claude Code / Cursor）
 
@@ -320,9 +330,9 @@ node ../cli/bin/agent-watch-hook.js \
   --approve-timeout 20 \
   <<< '{"tool_name":"Bash","command":"rm -rf /tmp/test","cwd":"/"}'
 
-# Jest 测试
-npx jest tests/e2e/feishu-mock-e2e.test.ts
-npx jest tests/agents/chinese-agents.test.ts
+# Jest 测试（当前版本未启用，请使用 e2e-verify.js 端到端验证）
+# npx jest tests/e2e/feishu-mock-e2e.test.ts
+# npx jest tests/agents/chinese-agents.test.ts
 ```
 
 ---
