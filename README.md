@@ -19,7 +19,7 @@
 | 🤖 **多 Agent 支持** | Claude Code / Cursor / Codex / Trae / CodeBuddy / Qoder CN / MiMo Code / MiniMax / 文心快码 |
 | 📱 **飞书实时推送** | 审批卡片直达手机、手表、PC，多端同步 |
 | ✅ **远程审批** | 一键批准或拒绝 AI 的敏感操作，毫秒级响应 |
-| 💰 **0 费用部署** | 基于 Cloudflare Tunnel，无需 VPS、域名、证书 |
+| 💰 **灵活部署** | 国内：¥30-60/年云服务器 / 海外：Cloudflare Tunnel 免费 |
 | 🔒 **双层拦截** | MCP 代理层 + 进程监控层，全方位拦截危险操作 |
 | 📦 **单仓库 Monorepo** | Turbo 构建，CLI + Gateway 一体化 |
 | 🚀 **开箱即用** | 3 分钟完成本地部署，完整飞书集成指南 |
@@ -105,7 +105,18 @@ curl -X POST http://localhost:3000/v1/approvals/{approval_id} \
 
 ## 📚 完整部署（飞书真实推送）
 
-### 第一步：创建飞书应用（10 分钟）
+### 选方案：国内用户 vs 海外用户
+
+|| 你的地区 | 推荐方案 | 费用 |
+||---|---|---|
+|| **中国大陆** | 国内云服务器 + nginx + Let's Encrypt | ¥30-60/年 |
+|| **海外/港澳台** | Cloudflare Tunnel（本地运行） | 免费 |
+
+详细步骤见 [飞书配置指南](docs/FEISHU-SETUP.md)。
+
+### 国内用户：云服务器部署
+
+**第一步：创建飞书应用（10 分钟）**
 
 1. 打开 [飞书开放平台](https://open.feishu.cn/) → 扫码登录
 2. 开发者后台 → 创建企业自建应用：`Agent Watch`
@@ -114,14 +125,62 @@ curl -X POST http://localhost:3000/v1/approvals/{approval_id} \
 5. 事件订阅 → 添加事件 `card.action.trigger`
 6. 记录凭证：App ID / App Secret / Verification Token
 
-### 第二步：配置环境变量
+**第二步：购买云服务器（阿里云/腾讯云/华为云）**
+
+- 规格：1核1G 足够
+- 系统：Ubuntu 22.04 LTS
+- 费用：新用户首年 ¥30-50
+
+**第三步：服务器安装 nginx + 证书**
 
 ```bash
-cp .env.example .env
-# 编辑 .env 填入飞书凭证和公共 URL
+# 在服务器上执行
+sudo apt update && sudo apt install -y nginx certbot python3-certbot-nginx
+sudo certbot --nginx  # 申请 Let's Encrypt 证书（无域名时跳过 HTTPS 配置）
 ```
 
-### 第三步：启动 Cloudflare Tunnel
+**第四步：配置反向代理**（/etc/nginx/sites-available/agent-watch）
+
+```nginx
+server {
+    listen 80;
+    server_name 你的服务器公网IP;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 86400;
+    }
+}
+```
+
+**第五步：上传代码并启动**
+
+```bash
+scp -r packages/gateway packages/shared user@服务器IP:/opt/agent-watch/
+ssh user@服务器IP
+cd /opt/agent-watch && pnpm install && pnpm build
+```
+
+**第六步：飞书事件订阅 URL**
+
+```
+https://你的服务器IP/webhook/feishu
+```
+
+详见：[FEISHU-SETUP.md](docs/FEISHU-SETUP.md#方案-a国内云服务器推荐国内用户)
+
+---
+
+### 海外用户：Cloudflare Tunnel 部署
+
+**第一步：创建飞书应用（同上）**
+
+**第二步：安装 cloudflared**
 
 ```bash
 winget install Cloudflare.cloudflared   # Windows
@@ -131,11 +190,13 @@ cloudflared tunnel --url http://localhost:3000
 # → 输出 https://xxxx.trycloudflare.com
 ```
 
-### 第四步：飞书 Webhook 配置
+**第三步：飞书 Webhook 配置**
 
-飞书后台 → 事件订阅 → Request URL = `https://xxxx.trycloudflare.com/webhook/feishu` → 保存
+飞书后台 → 事件订阅 → Request URL = `https://xxxx.trycloudflare.com/webhook/feishu`
 
-### 第五步：测试
+---
+
+### 验证
 
 ```bash
 cd packages/gateway
@@ -355,7 +416,7 @@ pnpm format
 
 ## 📖 详细文档
 
-- [飞书配置详解](docs/FEISHU-SETUP.md) - 飞书应用创建、凭证获取、Cloudflare Tunnel 配置
+- [飞书配置详解](docs/FEISHU-SETUP.md) - 飞书应用创建、凭证获取、国内云服务器/Cloudflare Tunnel 部署
 - [Trae 双层拦截](docs/TRAE-DUAL-LAYER.md) - Trae 用户必读
 - [项目状态](docs/PROJECT-STATUS.md) - 当前状态与路线图
 - [产品需求](docs/PRD.md) - v2.0 飞书单通道

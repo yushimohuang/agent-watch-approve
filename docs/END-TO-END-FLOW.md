@@ -16,7 +16,7 @@
 步骤 1：用户注册飞书开放平台账号 + 创建自建应用
 步骤 2：拿到 4 个值：App ID / App Secret / Verification Token / Encrypt Key
 步骤 3：在 .env 填入这 4 个值 + PUBLIC_URL
-步骤 4：运行 cloudflared tunnel --url http://localhost:3000
+步骤 4：运行 cloudflared tunnel --url http://localhost:3000（海外用户）或配置国内云服务器（国内用户）
 步骤 5：把 tunnel URL 配到飞书后台 → 事件订阅 → Request URL
 步骤 6：保存 → 飞书触发 URL 验证 → 自动通过
 ```

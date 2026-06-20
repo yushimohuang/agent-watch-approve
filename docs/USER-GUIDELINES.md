@@ -1,7 +1,7 @@
 # Agent Watch 使用守则
 
-> **版本**: 2.1 (安全加固版)
-> **日期**: 2026-06-15
+> **版本**: 2.2 (国内部署支持版)
+> **日期**: 2026-06-21
 > **状态**: ✅ 与代码同步
 
 **请仔细阅读本守则。Agent Watch 是一个需要您自备飞书开放平台账号的工具，使用前请了解相关风险和合规要求。**
@@ -94,7 +94,65 @@ LOCAL_USER_NAME=local-user                  # 本地显示名
 - Gateway 默认只在 `localhost:3000`
 - 必须暴露到公网
 
-### Cloudflare Tunnel（**推荐**，0 费用）
+### 方案一：国内云服务器（推荐国内用户）
+
+**为什么用服务器？** Cloudflare Tunnel 国内不稳定。国内云服务器 + 反向代理 + Let's Encrypt 证书，稳定可靠，年费 ¥30-60。
+
+**步骤：**
+
+1. **买服务器**：阿里云/腾讯云/华为云新用户首年 ¥30-50（1核1G足够）
+2. **服务器安装 nginx + certbot**：
+
+```bash
+# Ubuntu/Debian
+sudo apt update && sudo apt install -y nginx certbot python3-certbot-nginx
+
+# CentOS
+sudo yum install -y nginx certbot python3-certbot-nginx
+```
+
+3. **配置 nginx 反向代理**（/etc/nginx/sites-available/agent-watch）：
+
+```nginx
+server {
+    listen 80;
+    server_name 你的服务器公网IP;   # 或你的域名
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_read_timeout 86400;
+    }
+}
+```
+
+4. **申请 Let's Encrypt 免费证书**：
+
+```bash
+sudo certbot --nginx -d 你的域名   # 有域名时
+sudo certbot --nginx                # 无域名，用 IP（部分浏览器可能不信任）
+```
+
+5. **启动 Gateway**（服务器上）：
+
+```bash
+cd /opt/agent-watch
+pnpm install
+pnpm --filter @agent-watch/gateway build
+node packages/gateway/dist/index.js
+```
+
+6. **飞书事件订阅 URL**：`https://你的服务器IP或域名/webhook/feishu`
+
+> **注意**：无域名用 IP 时，Let's Encrypt 证书可能不被部分浏览器信任。建议购买一个 ¥20/年的域名（如 example.cn），用 certbot 申请真实证书，体验最好。
+
+---
+
+### 方案二：Cloudflare Tunnel（适合海外或港澳台用户）
 
 ```bash
 # 1. 安装
@@ -106,12 +164,7 @@ cloudflared tunnel --url http://localhost:3000
 # 输出：https://xxxx.trycloudflare.com
 ```
 
-### ngrok（备选）
-
-```bash
-ngrok http 3000
-# 输出：https://xxxx.ngrok.io
-```
+> **注意**：Cloudflare Tunnel 在中国大陆访问不稳定（延迟高、间歇性断开）。国内用户推荐使用云服务器方案。
 
 ### 配置到飞书
 
@@ -256,7 +309,8 @@ curl -X POST http://localhost:3000/v1/settings/push/feishu/bind \
 
 - **个人开发者**：自建应用免实名，1 分钟通过
 - **企业开发者**：需要企业认证（1~3 工作日）
-- **公网访问**：使用 Cloudflare Tunnel（不暴露 IP）
+- **公网访问（国内用户）**：使用国内云服务器 + Let's Encrypt（¥30-60/年）
+- **公网访问（海外/港澳台用户）**：Cloudflare Tunnel（免费）
 - **数据出境**：飞书 Open API 服务器在中国大陆（**不**出境）
 
 ---
@@ -264,10 +318,11 @@ curl -X POST http://localhost:3000/v1/settings/push/feishu/bind \
 ## 十、下一步
 
 - 完整部署指南：[README.md](../README.md)
+- 飞书部署（国内云服务器）：[FEISHU-SETUP.md](FEISHU-SETUP.md)
 - 项目状态：[PROJECT-STATUS.md](PROJECT-STATUS.md)
 - 端到端流程：[END-TO-END-FLOW.md](END-TO-END-FLOW.md)
 - 技术架构：[ARCHITECTURE.md](ARCHITECTURE.md)
 
 ---
 
-*文档版本: 2.0 | 最后更新: 2026-06-15*
+*文档版本: 2.2 | 最后更新: 2026-06-21*

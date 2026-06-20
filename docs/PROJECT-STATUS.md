@@ -1,8 +1,8 @@
 # Agent Watch / Agent Approve - 项目状态报告
 
-> **最后更新**：2026-06-15
-> **当前版本**：v2.1（安全加固版）
-> **核心变化**：删除 mobile/wechat-mini 整个包 + 删除多通道推送（FCM/JPush） + 飞书单通道 + 仅 4 个包
+> **最后更新**：2026-06-21
+> **当前版本**：v2.1（国内部署支持版）
+> **核心变化**：支持国内云服务器 + nginx 部署（Cloudflare Tunnel 适合海外用户）
 
 ---
 
@@ -39,7 +39,15 @@
 │  · 多 Agent 适配器                  · 策略引擎                  │
 └───────────────────┬───────────────────────────────────────────────┘
                     │
-        Cloudflare Tunnel
+         ┌──────────┴──────────┐
+         │  二选一公网方案       │
+         ▼                      ▼
+┌─────────────────┐    ┌──────────────────────────────────┐
+│  国内用户        │    │  海外/港澳台用户                  │
+│  nginx +        │    │  Cloudflare Tunnel (cloudflared) │
+│  Let's Encrypt │    │  (免费，0 VPS)                   │
+│  ¥30-60/年      │    │                                  │
+└─────────────────┘    └──────────────────────────────────┘
                     │
 ┌───────────────────┼───────────────────────────────────────────────┐
 │  你的飞书 App（手机/手表/Mac/Windows/Linux）                       │
@@ -278,7 +286,7 @@ export type PushServiceType = 'feishu';
 | 任务 | 缺什么 |
 |---|---|
 | 飞书真实推送 | 飞书 App ID / Secret / Token |
-| 飞书 webhook 回调 | Cloudflare Tunnel 或 ngrok 公网地址 |
+| 飞书 webhook 回调 | 国内云服务器 / Cloudflare Tunnel（按地区选择） |
 | Claude Code Hook 实际触发 | `agent-watch install claude` 注入 Hook |
 
 ---
@@ -337,7 +345,7 @@ cd packages/dashboard && npx tsc --noEmit
 | CLI | Node.js + Commander.js + WebSocket |
 | 推送 | 飞书 Open API（**唯一通道**）|
 | 部署 | Docker + docker-compose |
-| 公网 | Cloudflare Tunnel（推荐）/ ngrok |
+| 公网 | 国内：nginx + Let's Encrypt / 海外：Cloudflare Tunnel | 灵活 |
 
 ---
 
@@ -376,7 +384,8 @@ cd packages/dashboard && npx tsc --noEmit
 | v1.5 | 2026-06-14 | 飞书单通道代码重构 |
 | **v2.0** | **2026-06-15** | **删除 mobile/wechat-mini + 文档 v2.0 + 仅 4 个包** |
 | **v2.1** | **2026-06-15** | **安全加固（H1/H2/M1/M3/M5 修复，action token，签名强制）** |
+| **v2.2** | **2026-06-21** | **国内部署支持（nginx + Let's Encrypt，Cloudflare Tunnel 仅适合海外）** |
 
 ---
 
-*文档版本: 2.1 | 最后更新: 2026-06-15*
+*文档版本: 2.2 | 最后更新: 2026-06-21*

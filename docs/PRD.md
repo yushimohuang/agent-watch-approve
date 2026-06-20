@@ -1,7 +1,7 @@
 # Agent Watch / Agent Approve - 产品需求文档 (PRD)
 
-> **版本**: 2.0 (飞书单通道架构)
-> **日期**: 2026-06-15
+> **版本**: 2.1 (国内部署支持版)
+> **日期**: 2026-06-21
 > **状态**: ✅ 与代码同步
 
 ---
@@ -20,7 +20,7 @@
 
 | 特性 | 说明 |
 |---|---|
-| **零费用** | 飞书 Open API 完全免费，Cloudflare Tunnel 免 VPS |
+| **灵活部署** | 飞书 Open API 免费，国内云服务器 ¥30-60/年 / 海外 Cloudflare Tunnel 免费 |
 | **零运维** | 单一推送通道，代码极简，部署 5 分钟 |
 | **多端覆盖** | 飞书 App 自带：iOS / Android / Mac / Windows / 国产安卓手表镜像 |
 | **非侵入式** | Hook 注入，不修改 AI Agent 源代码 |
@@ -199,9 +199,22 @@ cd packages/gateway && pnpm dev
 # 2. 启动 Dashboard
 cd packages/dashboard && npx next dev -p 3001
 
-# 3. 暴露公网（飞书 webhook 需要）
+# 3. 暴露公网（飞书 webhook 需要，按地区选择）
+
+## 国内用户：云服务器 + nginx
+```bash
+# 购买 1核1G 云服务器后，在服务器上：
+sudo apt install -y nginx certbot python3-certbot-nginx
+# 配置反向代理 + Let's Encrypt 证书后启动
+# 飞书事件订阅 URL：https://服务器IP/webhook/feishu
+```
+详见：[FEISHU-SETUP.md](FEISHU-SETUP.md#方案-a国内云服务器推荐国内用户)
+
+## 海外用户：Cloudflare Tunnel
+```bash
 cloudflared tunnel --url http://localhost:3000
 ```
+
 
 ### 5.2 Docker Compose
 

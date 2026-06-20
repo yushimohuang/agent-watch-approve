@@ -1,7 +1,7 @@
 # Agent Watch / Agent Approve - 技术架构设计文档
 
-> **版本**: 2.0 (飞书单通道架构)
-> **日期**: 2026-06-15
+> **版本**: 2.1 (国内部署支持版)
+> **日期**: 2026-06-21
 > **状态**: ✅ 与代码同步
 
 ---
@@ -11,10 +11,10 @@
 | 原则 | 说明 |
 |---|---|
 | **简单** | 1 个推送通道打到底，不做多通道 |
-| **零费用** | 飞书 Open API 免费 + Cloudflare Tunnel 免 VPS |
 | **零侵入** | Hook 不修改 AI Agent 源代码 |
 | **多端覆盖** | 飞书 App 自带 8+ 平台（iOS/Android/Mac/Win/Linux/Watch）|
 | **可观测** | 活动日志（Event Sourcing）记录一切 |
+| **灵活部署** | 支持国内云服务器（¥30-60/年）和 Cloudflare Tunnel（免费）|
 
 ---
 
@@ -45,9 +45,10 @@
 │  │  WebSocket Client + REST API Client        │             │
 │  └────────────────────────────────────────────┘             │
 │                                                             │
-│  进程 4: Cloudflare Tunnel (cloudflared)                    │
+│  进程 4: 反向代理（二选一）                      │
 │  ┌────────────────────────────────────────────┐             │
-│  │  localhost:3000 → https://*.trycloudflare  │             │
+│  │  国内服务器：nginx + Let's Encrypt        │             │
+│  │  海外用户：Cloudflare Tunnel (cloudflared)│             │
 │  └────────────────────────────────────────────┘             │
 │                                                             │
 │  进程 5: 飞书 App (云端 + 8+ 客户端)                        │
@@ -67,8 +68,7 @@
 | Dashboard ↔ Gateway | WebSocket + REST | 实时状态 + 配置 |
 | Feishu Server → Gateway | HTTPS POST | 卡片按钮回调 |
 | Gateway → Feishu Server | HTTPS POST | 发送卡片 |
-| Cloudflare Tunnel | HTTPS | 公网访问 Gateway |
-| LAN (mDNS) | UDP 5353 | 手机自动发现 Gateway |
+| Cloudflare Tunnel / nginx | HTTPS | 公网访问 Gateway |
 
 ---
 
@@ -316,16 +316,35 @@ function setApprovalDecision({ approvalId, decision, decidedBy }) {
 
 ## 6. 部署架构
 
-### 6.1 开发模式
+### 6.1 公网访问方案（二选一）
+
+|| 方案 | 适合 | 费用 | 稳定性 |
+||---|---|---|---|
+|| **国内云服务器 + nginx** | 国内用户 | ¥30-60/年 | ⭐⭐⭐⭐⭐ |
+|| **Cloudflare Tunnel** | 海外/港澳台用户 | 免费 | ⭐⭐⭐ |
+
+**国内云服务器部署**（推荐国内用户）：
+
+1. 购买 1核1G 云服务器（阿里云/腾讯云/华为云，新用户首年 ¥30-50）
+2. 服务器安装 nginx + certbot：`apt install nginx certbot python3-certbot-nginx`
+3. 配置反向代理 + Let's Encrypt 证书
+4. 上传项目代码或用 Git clone
+5. `systemctl enable agent-watch` 永久运行
+6. 飞书事件订阅 URL：`https://服务器IP/webhook/feishu`
+
+详见：[FEISHU-SETUP.md](FEISHU-SETUP.md)
+
+### 6.2 开发模式
 
 ```
 本地：pnpm dev
 - Gateway: localhost:3000
 - Dashboard: localhost:3001
-- 飞书 webhook: cloudflared tunnel --url http://localhost:3000
+- 飞书 webhook: cloudflared tunnel --url http://localhost:3000（海外用户）
+- 飞书 webhook: 国内云服务器 + nginx 反向代理（国内用户）
 ```
 
-### 6.2 生产模式（Docker Compose）
+### 6.3 生产模式（Docker Compose）
 
 ```yaml
 services:
@@ -333,21 +352,28 @@ services:
     build: ./packages/gateway
     ports: ['3000:3000']
     env: [FEISHU_*, JWT_*, REDIS_*]
-  
+
   dashboard:
     build: ./packages/dashboard
     ports: ['3001:3000']
-  
+
+  nginx:
+    image: nginx:latest
+    ports: ['80:80', '443:443']
+    volumes: [nginx.conf:/etc/nginx/conf.d]
+    depends_on: [gateway, dashboard]
+
   redis:
     image: redis:7-alpine
     volumes: [redis_data:/data]
 ```
 
-### 6.3 生产环境 Checklist
+### 6.4 生产环境 Checklist
 
-- [ ] JWT_SECRET 改强
+- [ ] JWT_SECRET 改强（32+ 字符）
 - [ ] FEISHU_ENCRYPT_KEY 配置（加密模式）
-- [ ] Cloudflare Tunnel 用命名隧道（非临时域名）
+- [ ] 国内用户：nginx + Let's Encrypt 已配置
+- [ ] 海外用户：Cloudflare 命名隧道（非临时域名）
 - [ ] CORS_ORIGINS 限制具体域名
 - [ ] RATE_LIMIT 调整
 - [ ] Redis 持久化启用
@@ -363,7 +389,7 @@ services:
 | **CLI** | Node.js + Commander.js | 跨平台、npm 生态 |
 | **推送** | 飞书 Open API | 0 费用、多端覆盖 |
 | **部署** | Docker + docker-compose | 简单可移植 |
-| **公网** | Cloudflare Tunnel | 0 VPS、0 域名 |
+| **公网** | 国内：nginx + Let's Encrypt / 海外：Cloudflare Tunnel | 灵活 |
 | **缓存** | Redis | 预留（当前用内存） |
 | **数据库** | PostgreSQL | 预留（当前用内存） |
 
@@ -427,7 +453,8 @@ cd ../cli && node bin/e2e-verify.js
 | 场景 | 恢复策略 |
 |---|---|
 | Gateway 崩溃 | Docker restart unless-stopped |
-| Cloudflare Tunnel 断 | 自动重连（cloudflared 内置） |
+| Cloudflare Tunnel 断（海外） | 自动重连（cloudflared 内置） |
+| nginx/Gateway 崩溃（国内） | Docker/systemd restart unless-stopped |
 | 飞书 token 过期 | 自动重取（提前 5 分钟刷新） |
 | WebSocket 断连 | CLI 自动重连 + 心跳 |
 | Redis 不可用 | 降级为内存存储（仅单机） |
@@ -435,4 +462,4 @@ cd ../cli && node bin/e2e-verify.js
 
 ---
 
-*文档版本: 2.0 | 最后更新: 2026-06-15*
+*文档版本: 2.1 | 最后更新: 2026-06-21*
