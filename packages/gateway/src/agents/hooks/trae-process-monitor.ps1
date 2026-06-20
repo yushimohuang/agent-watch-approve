@@ -242,8 +242,55 @@ function Wait-ForApproval {
 }
 
 # ---------------------------------------------------------------------------
-# Process Monitor using WMI ManagementEventWatcher
+# Process Monitor using CIM polling (reliable fallback for WMI restrictions)
 # ---------------------------------------------------------------------------
+
+function Get-TraeChildProcess {
+    param([hashtable[]] $KnownPids)
+
+    $traeWindowProcs = Get-Process | Where-Object {
+        $_.ProcessName -match 'electron|trae|Trae|code' -and $_.MainWindowHandle -ne 0
+    } | Select-Object -ExpandProperty Id
+
+    $currentPids = @{}
+    $newProcs = @()
+
+    try {
+        $allProcs = Get-CimInstance -ClassName Win32_Process -ErrorAction SilentlyContinue
+
+        foreach ($proc in $allProcs) {
+            $currentPids[$proc.ProcessId] = $true
+
+            if ($proc.Name -notmatch '^(powershell|pwsh|cmd|node)\.exe$') { continue }
+            if (-not $proc.CommandLine) { continue }
+
+            if ($KnownPids -and $KnownPids.Contains($proc.ProcessId)) { continue }
+
+            try {
+                $parent = Get-CimInstance -ClassName Win32_Process `
+                    -Filter "ProcessId = $($proc.ParentProcessId)" `
+                    -ErrorAction SilentlyContinue | Select-Object -First 1
+                if (-not $parent) { continue }
+
+                $isTraeChild = ($parent.ProcessName -match 'electron|trae|Trae|code') -or
+                               ($traeWindowProcs -contains $proc.ParentProcessId)
+                if (-not $isTraeChild) { continue }
+            }
+            catch { continue }
+
+            $newProcs += @{
+                PID = $proc.ProcessId
+                Name = $proc.Name
+                CommandLine = $proc.CommandLine
+                ParentName = $parent.ProcessName
+            }
+        }
+    }
+    catch { }
+
+    return @{ New = $newProcs; Current = $currentPids }
+}
+
 function Start-ProcessMonitor {
     Write-Log 'INFO' 'Process monitor started' @{
         Gateway = $GatewayUrl
@@ -251,91 +298,47 @@ function Start-ProcessMonitor {
         SessionId = $SessionId
     }
 
-    Add-Type -AssemblyName System.Management
+    $pollIntervalMs = 2000
+    $knownPids = @{}
 
-    # WMI event query: subscribe to all new process creation
-    $query = New-Object System.Management.WqlEventQuery(
-        '__InstanceCreationEvent',
-        1,
-        "TargetInstance ISA 'Win32_Process'"
-    )
+    Write-Log 'INFO' "CIM polling mode (interval: ${pollIntervalMs}ms)" @{}
 
-    $watcher = New-Object System.Management.ManagementEventWatcher($query)
-
-    $action = {
-        param([System.Management.BaseEvent]$e)
-
+    while ($true) {
         try {
-            $proc = $e.Properties['TargetInstance'].Value
-            $procName = $proc.Properties['Name'].Value
-            $cmdLine  = $proc.Properties['CommandLine'].Value
-            $ppid     = $proc.Properties['ParentProcessId'].Value
-            $pid      = $proc.Properties['ProcessId'].Value
+            $result = Get-TraeChildProcess -KnownPids $knownPids
+            $knownPids = $result.Current
 
-            if (-not $cmdLine) { return }
+            foreach ($p in $result.New) {
+                $cmdShort = $p.CommandLine.Substring(0, [Math]::Min(120, $p.CommandLine.Length))
 
-            # Only target Trae child processes
-            $isTarget = $procName -match '^(powershell|pwsh|cmd|node)\.exe$'
-            if (-not $isTarget) { return }
-
-            # Check parent process name
-            try {
-                $parentProc = Get-Process -Id $ppid -ErrorAction SilentlyContinue
-                if (-not $parentProc) { return }
-                $parentName = $parentProc.ProcessName
-                $isTraeChild = $parentName -match '(electron|trae|Trae|code)' -or $ppid -eq $PID
-            }
-            catch {
-                return
-            }
-
-            if (-not $isTraeChild) { return }
-
-            Write-Log 'DEBUG' 'Trae child process detected' @{
-                ProcessName = $procName
-                PID = $pid
-                Parent = $parentName
-                CommandLine = $cmdLine.Substring(0, [Math]::Min(120, $cmdLine.Length))
-            }
-
-            # Check if dangerous
-            $check = Test-CommandDangerous -Command $cmdLine
-            if ($check.Dangerous) {
-                Write-Log 'WARN' 'Dangerous command blocked!' @{
-                    PID = $pid
-                    Reason = $check.Reason
-                    Command = $cmdLine
+                Write-Log 'DEBUG' 'Trae child process detected' @{
+                    ProcessName = $p.Name
+                    PID = $p.PID
+                    Parent = $p.ParentName
+                    CommandLine = $cmdShort
                 }
 
-                $decision = Wait-ForApproval -Command $cmdLine -Reason $check.Reason -TimeoutSeconds $ApproveTimeoutSeconds
+                $check = Test-CommandDangerous -Command $p.CommandLine
+                if ($check.Dangerous) {
+                    Write-Log 'WARN' 'Dangerous command detected!' @{
+                        PID = $p.PID
+                        Reason = $check.Reason
+                    }
 
-                if ($decision -ne 'approve') {
-                    Write-Log 'WARN' "Killing process PID=$pid" @{}
-                    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-                    return
+                    $decision = Wait-ForApproval -Command $p.CommandLine -Reason $check.Reason -TimeoutSeconds $ApproveTimeoutSeconds
+
+                    if ($decision -ne 'approve') {
+                        Write-Log 'WARN' "Killing PID=$($p.PID)" @{}
+                        Stop-Process -Id $p.PID -Force -ErrorAction SilentlyContinue
+                    }
                 }
             }
         }
         catch {
-            Write-Log 'ERROR' "Event handler error: $($_.Exception.Message)" @{}
+            Write-Log 'ERROR' "Monitor loop error: $($_.Exception.Message)" @{}
         }
-    }
 
-    $watcher.EventArrived += $action
-    $watcher.Start()
-
-    Write-Log 'INFO' 'Monitor running. Press Ctrl+C to stop...'
-    Write-Log 'INFO' "Session: $SessionId"
-
-    try {
-        while ($true) {
-            Start-Sleep -Seconds 5
-        }
-    }
-    finally {
-        $watcher.Stop()
-        $watcher.Dispose()
-        Write-Log 'INFO' 'Process monitor stopped'
+        Start-Sleep -Milliseconds $pollIntervalMs
     }
 }
 

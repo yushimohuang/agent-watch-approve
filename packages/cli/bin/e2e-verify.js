@@ -329,16 +329,10 @@ async function testFindOrCreate() {
 
 function loadWs() {
   try {
-    // Try from gateway's node_modules (where e2e-verify runs from)
-    const gwDir = 'D:\\Desktop\\watch agent\\agent-watch-approve\\packages\\gateway';
-    return require(path.join(gwDir, 'node_modules/ws'));
+    // Try from CLI's node_modules (local dev)
+    return require(path.join(__dirname, '../node_modules/ws'));
   } catch {
-    try {
-      // Try from CLI's node_modules
-      return require(path.join(__dirname, '../node_modules/ws'));
-    } catch {
-      return null;
-    }
+    return null;
   }
 }
 
