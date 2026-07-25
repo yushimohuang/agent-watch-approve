@@ -74,13 +74,13 @@ export function ApprovalCard({
   return (
     <div
       className={cn(
-        'animate-fade-in-50 rounded-xl border border-zinc-800 bg-zinc-900/70 shadow-lg shadow-black/20 transition-colors',
+        'animate-fade-in-50 rounded-xl border border-zinc-200 bg-white shadow-lg shadow-black/5 transition-colors',
         !resolved && timing.expired && 'border-rose-500/30 opacity-70',
       )}
     >
       {/* 顶部 meta 行 */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-800/80 px-4 py-2.5">
-        <Badge variant="default" className="bg-zinc-800/80 text-zinc-300">
+      <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 px-4 py-2.5">
+        <Badge variant="default" className="bg-zinc-100 text-zinc-700">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
           {agentLabel}
         </Badge>
@@ -88,7 +88,7 @@ export function ApprovalCard({
         {approval.approvalType && (
           <Badge variant="muted">{approval.approvalType}</Badge>
         )}
-        <span className="ml-auto font-mono text-[10px] text-zinc-600">
+        <span className="ml-auto font-mono text-[10px] text-zinc-400">
           {timeAgo(approval.createdAt)} · {approval.id.slice(0, 8)}
         </span>
       </div>
@@ -105,16 +105,16 @@ export function ApprovalCard({
               <span
                 className={cn(
                   timing.expired
-                    ? 'text-rose-400'
+                    ? 'text-rose-600'
                     : timing.pct < 25
-                      ? 'text-amber-400'
-                      : 'text-zinc-400',
+                      ? 'text-amber-600'
+                      : 'text-zinc-500',
                 )}
               >
                 {timing.expired ? '已超时' : `${timing.secs}s`}
               </span>
             </div>
-            <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-800">
+            <div className="h-1 w-full overflow-hidden rounded-full bg-zinc-200">
               <div
                 className={cn(
                   'h-full rounded-full transition-[width] duration-1000 ease-linear',
@@ -172,7 +172,7 @@ function ResolvedFooter({ approval }: { approval: Approval }) {
   };
   const s = statusMap[approval.status] ?? statusMap.pending;
   return (
-    <div className="mt-3 flex items-center gap-2 border-t border-zinc-800/60 pt-3">
+    <div className="mt-3 flex items-center gap-2 border-t border-zinc-200 pt-3">
       <Badge variant={s.variant}>{s.label}</Badge>
       {approval.decidedBy && (
         <span className="font-mono text-[10px] text-zinc-600">
@@ -207,13 +207,13 @@ export function CommandBlock({
   return (
     <div className="relative">
       <div className="absolute left-3 top-0 -translate-y-1/2">
-        <span className="rounded-sm border border-zinc-700 bg-zinc-900 px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-zinc-500">
+        <span className="rounded-sm border border-zinc-300 bg-white px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-zinc-500">
           {tabLabel}
         </span>
       </div>
       <pre
         className={cn(
-          'overflow-x-auto rounded-md border border-zinc-800 bg-zinc-950 p-3 pt-4 font-mono text-[13px] leading-relaxed text-zinc-200',
+          'overflow-x-auto rounded-md border border-zinc-200 bg-zinc-50 p-3 pt-4 font-mono text-[13px] leading-relaxed text-zinc-800',
           compact && 'text-xs',
         )}
       >
@@ -221,10 +221,10 @@ export function CommandBlock({
       </pre>
       {reason && (
         <div className="mt-2 flex items-start gap-1.5 text-xs text-zinc-500">
-          <span className="font-mono text-[10px] uppercase tracking-wide text-zinc-600">
+          <span className="font-mono text-[10px] uppercase tracking-wide text-zinc-400">
             reason
           </span>
-          <span className="text-zinc-400">{reason}</span>
+          <span className="text-zinc-500">{reason}</span>
         </div>
       )}
     </div>

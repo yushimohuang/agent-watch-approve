@@ -163,7 +163,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 animate-fade-in-50">
       <div className="flex items-center gap-2">
-        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-900">
           设置 · SETTINGS
         </h1>
         <Button variant="ghost" size="icon" onClick={fetchSettings} aria-label="刷新">
@@ -194,7 +194,7 @@ export default function SettingsPage() {
                   mono
                 />
               </div>
-              <div className="flex flex-wrap items-end gap-3 border-t border-zinc-800 pt-4">
+              <div className="flex flex-wrap items-end gap-3 border-t border-zinc-200 pt-4">
                 <div className="flex-1 space-y-1" style={{ minWidth: 200 }}>
                   <label className="font-mono text-[11px] uppercase tracking-wide text-zinc-500">
                     修改显示名
@@ -274,7 +274,7 @@ export default function SettingsPage() {
               )}
 
               {/* 飞书用户绑定 */}
-              <div className="rounded-md border border-zinc-800 bg-zinc-950/40 p-3">
+              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
                 <div className="mb-2 font-mono text-[11px] uppercase tracking-wide text-zinc-500">
                   飞书用户绑定
                 </div>
@@ -308,7 +308,7 @@ export default function SettingsPage() {
               </div>
 
               {/* 编辑飞书配置 */}
-              <div className="space-y-3 border-t border-zinc-800 pt-4">
+              <div className="space-y-3 border-t border-zinc-200 pt-4">
                 <div className="font-mono text-[11px] uppercase tracking-wide text-zinc-500">
                   更新飞书凭证（留空表示不修改）
                 </div>
@@ -374,7 +374,7 @@ export default function SettingsPage() {
                   <Button onClick={handleSaveFeishu} disabled={savingFeishu}>
                     {savingFeishu ? '保存中…' : '保存配置'}
                   </Button>
-                  <span className="text-[11px] text-zinc-600">
+                  <span className="text-[11px] text-zinc-400">
                     提交时网关会校验凭证，校验失败将返回 400
                   </span>
                 </div>
@@ -388,7 +388,7 @@ export default function SettingsPage() {
       <Card>
         <CardContent className="flex items-center justify-between p-5">
           <div>
-            <div className="font-mono text-sm text-zinc-200">退出登录</div>
+            <div className="font-mono text-sm text-zinc-800">退出登录</div>
             <div className="mt-0.5 text-xs text-zinc-500">
               清除本地 JWT，返回登录页
             </div>
@@ -438,14 +438,14 @@ function InfoItem({
 }) {
   return (
     <div className="space-y-0.5">
-      <div className="font-mono text-[10px] uppercase tracking-wide text-zinc-600">
+      <div className="font-mono text-[10px] uppercase tracking-wide text-zinc-400">
         {label}
       </div>
       <div
         className={
           mono
-            ? 'font-mono text-[12px] text-zinc-300 break-all'
-            : 'text-sm text-zinc-300 break-all'
+            ? 'font-mono text-[12px] text-zinc-700 break-all'
+            : 'text-sm text-zinc-700 break-all'
         }
       >
         {value}

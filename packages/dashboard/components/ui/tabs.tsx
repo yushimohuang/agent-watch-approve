@@ -57,7 +57,7 @@ export function TabsList({
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-lg border border-zinc-800 bg-zinc-950/40 p-1',
+        'inline-flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-1',
         className,
       )}
     >
@@ -85,8 +85,8 @@ export function TabsTrigger({
       className={cn(
         'inline-flex h-8 items-center justify-center rounded-md px-3 font-mono text-xs transition-colors',
         active
-          ? 'bg-zinc-800 text-amber-400 shadow-sm'
-          : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50',
+          ? 'bg-white text-amber-600 shadow-sm'
+          : 'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100',
         className,
       )}
     >

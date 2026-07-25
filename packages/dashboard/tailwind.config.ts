@@ -9,52 +9,52 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // 语义色：审批状态
+        // 语义色：审批状态（亮色版本 — DEFAULT 是底色，fg 是文字色）
         approved: {
           DEFAULT: '#10b981', // emerald-500
-          fg: '#ecfdf5',
+          fg: '#065f46', // emerald-800（亮色背景上文字够深）
         },
         denied: {
           DEFAULT: '#f43f5e', // rose-500
-          fg: '#fff1f2',
+          fg: '#9f1239', // rose-800
         },
         pending: {
           DEFAULT: '#f59e0b', // amber-500
-          fg: '#fffbeb',
+          fg: '#92400e', // amber-800
         },
-        // 复用 shadcn 习惯的 token 名称（指向 zinc 调色板）
-        border: 'rgb(63 63 70)', // zinc-800
-        input: 'rgb(63 63 70)',
-        ring: '#f59e0b',
-        background: '#09090b', // zinc-950
-        foreground: '#fafafa', // zinc-50
+        // 复用 shadcn 习惯的 token 名称（指向 zinc 调色板 — 亮色版本）
+        border: 'rgb(228 228 231)', // zinc-200
+        input: 'rgb(228 228 231)',
+        ring: '#d97706', // amber-600
+        background: '#fafafa', // zinc-50
+        foreground: '#18181b', // zinc-900
         primary: {
-          DEFAULT: '#f59e0b', // amber-500
-          foreground: '#1c1917',
+          DEFAULT: '#d97706', // amber-600（亮色背景上对比度更好）
+          foreground: '#ffffff',
         },
         secondary: {
-          DEFAULT: '#27272a', // zinc-800
-          foreground: '#fafafa',
+          DEFAULT: '#f4f4f5', // zinc-100
+          foreground: '#18181b',
         },
         muted: {
-          DEFAULT: '#27272a',
-          foreground: '#a1a1aa', // zinc-400
+          DEFAULT: '#f4f4f5',
+          foreground: '#71717a', // zinc-500
         },
         destructive: {
           DEFAULT: '#f43f5e',
-          foreground: '#fafafa',
+          foreground: '#ffffff',
         },
         card: {
-          DEFAULT: '#18181b', // zinc-900
-          foreground: '#fafafa',
+          DEFAULT: '#ffffff',
+          foreground: '#18181b',
         },
         popover: {
-          DEFAULT: '#18181b',
-          foreground: '#fafafa',
+          DEFAULT: '#ffffff',
+          foreground: '#18181b',
         },
         accent: {
-          DEFAULT: '#f59e0b',
-          foreground: '#1c1917',
+          DEFAULT: '#d97706',
+          foreground: '#ffffff',
         },
       },
       fontFamily: {

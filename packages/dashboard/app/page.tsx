@@ -155,10 +155,10 @@ export default function OverviewPage() {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
         </span>
-        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-900">
           概览 · OVERVIEW
         </h1>
-        <span className="font-mono text-[11px] text-zinc-600">实时守望中</span>
+        <span className="font-mono text-[11px] text-zinc-400">实时守望中</span>
       </div>
 
       {/* 统计卡片 */}
@@ -239,18 +239,18 @@ export default function OverviewPage() {
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-3 flex items-baseline justify-between">
-      <h2 className="font-mono text-sm font-semibold uppercase tracking-wide text-zinc-200">
+      <h2 className="font-mono text-sm font-semibold uppercase tracking-wide text-zinc-800">
         {title}
       </h2>
-      {subtitle && <span className="font-mono text-[10px] text-zinc-600">{subtitle}</span>}
+      {subtitle && <span className="font-mono text-[10px] text-zinc-400">{subtitle}</span>}
     </div>
   );
 }
 
 function ActivityTimeline({ activities }: { activities: Activity[] }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-      <ol className="relative space-y-4 before:absolute before:left-[5px] before:top-1 before:h-[calc(100%-8px)] before:w-px before:bg-zinc-800">
+    <div className="rounded-xl border border-zinc-200 bg-white p-4">
+      <ol className="relative space-y-4 before:absolute before:left-[5px] before:top-1 before:h-[calc(100%-8px)] before:w-px before:bg-zinc-200">
         {activities.map((a) => {
           const meta = ACTIVITY_TYPE_META[a.type] ?? {
             label: a.type,
@@ -260,7 +260,7 @@ function ActivityTimeline({ activities }: { activities: Activity[] }) {
             <li key={a.id} className="relative flex gap-3 pl-5">
               <span
                 className={cn(
-                  'absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-zinc-900',
+                  'absolute left-0 top-1.5 h-2.5 w-2.5 rounded-full ring-2 ring-white',
                   meta.color,
                 )}
               />
@@ -269,11 +269,11 @@ function ActivityTimeline({ activities }: { activities: Activity[] }) {
                   <Badge variant="muted" className="shrink-0">
                     {meta.label}
                   </Badge>
-                  <span className="ml-auto shrink-0 font-mono text-[10px] text-zinc-600">
+                  <span className="ml-auto shrink-0 font-mono text-[10px] text-zinc-400">
                     {timeAgo(a.timestamp)}
                   </span>
                 </div>
-                <p className="mt-1 truncate text-xs text-zinc-400">{a.message}</p>
+                <p className="mt-1 truncate text-xs text-zinc-600">{a.message}</p>
               </div>
             </li>
           );

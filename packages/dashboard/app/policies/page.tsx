@@ -187,7 +187,7 @@ export default function PoliciesPage() {
   return (
     <div className="space-y-6 animate-fade-in-50">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-900">
           策略 · POLICIES
         </h1>
         <Button variant="ghost" size="icon" onClick={fetchPolicies} aria-label="刷新">
@@ -204,7 +204,7 @@ export default function PoliciesPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
+      <div className="rounded-xl border border-zinc-200 bg-white">
         {error ? (
           <div className="p-6">
             <ErrorState message={error} onRetry={fetchPolicies} />
@@ -251,7 +251,7 @@ export default function PoliciesPage() {
                   return (
                     <tr key={p.id}>
                       <td>
-                        <code className="font-mono text-[12px] text-zinc-200">
+                        <code className="font-mono text-[12px] text-zinc-800">
                           {patternStr || '—'}
                         </code>
                         {p.description && (
@@ -263,10 +263,10 @@ export default function PoliciesPage() {
                       <td>
                         <Badge variant={meta.variant}>{meta.label}</Badge>
                       </td>
-                      <td className="font-mono text-[12px] text-zinc-300">
+                      <td className="font-mono text-[12px] text-zinc-700">
                         {p.priority ?? 0}
                       </td>
-                      <td className="font-mono text-[12px] text-zinc-400">
+                      <td className="font-mono text-[12px] text-zinc-600">
                         {p.matchCount ?? 0}
                       </td>
                       <td>
@@ -277,7 +277,7 @@ export default function PoliciesPage() {
                             'relative inline-flex h-5 w-9 items-center rounded-full border transition-colors',
                             p.isActive
                               ? 'border-amber-500/40 bg-amber-500/30'
-                              : 'border-zinc-700 bg-zinc-800',
+                              : 'border-zinc-300 bg-zinc-200',
                           )}
                           aria-label={p.isActive ? '点击停用' : '点击启用'}
                         >
@@ -285,8 +285,8 @@ export default function PoliciesPage() {
                             className={cn(
                               'inline-block h-3.5 w-3.5 transform rounded-full transition-transform',
                               p.isActive
-                                ? 'translate-x-4 bg-amber-400'
-                                : 'translate-x-0.5 bg-zinc-500',
+                                ? 'translate-x-4 bg-amber-500'
+                                : 'translate-x-0.5 bg-zinc-400',
                             )}
                           />
                         </button>
@@ -309,7 +309,7 @@ export default function PoliciesPage() {
                             size="icon"
                             onClick={() => setDeleteTarget(p)}
                             aria-label="删除"
-                            className="text-rose-400 hover:bg-rose-500/10 hover:text-rose-300"
+                            className="text-rose-600 hover:bg-rose-500/10 hover:text-rose-700"
                           >
                             <TrashIcon width={14} height={14} />
                           </Button>
@@ -351,7 +351,7 @@ export default function PoliciesPage() {
                 onChange={(e) =>
                   setForm({ ...form, decision: e.target.value as DecisionChoice })
                 }
-                className="h-9 w-full rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+                className="h-9 w-full rounded-md border border-zinc-300 bg-white px-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
               >
                 <option value="allow">允许 (allow)</option>
                 <option value="prompt">询问 (prompt)</option>
@@ -410,9 +410,9 @@ export default function PoliciesPage() {
         description="此操作不可撤销"
       >
         <div className="space-y-4">
-          <p className="text-sm text-zinc-300">
+          <p className="text-sm text-zinc-700">
             确认删除策略
-            <code className="ml-1 rounded bg-zinc-950 px-1.5 py-0.5 font-mono text-[12px] text-amber-400">
+            <code className="ml-1 rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[12px] text-amber-600">
               {Array.isArray(deleteTarget?.pattern)
                 ? deleteTarget?.pattern.map(String).join(', ')
                 : String(deleteTarget?.pattern ?? '')}

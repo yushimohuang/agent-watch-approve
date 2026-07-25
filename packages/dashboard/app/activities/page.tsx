@@ -151,7 +151,7 @@ export default function ActivitiesPage() {
   return (
     <div className="space-y-6 animate-fade-in-50">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-900">
           活动日志 · ACTIVITIES
         </h1>
         <Button variant="ghost" size="icon" onClick={fetchActivities} aria-label="刷新">
@@ -166,7 +166,7 @@ export default function ActivitiesPage() {
               'relative inline-flex h-5 w-9 items-center rounded-full border transition-colors',
               autoRefresh
                 ? 'border-amber-500/40 bg-amber-500/30'
-                : 'border-zinc-700 bg-zinc-800',
+                : 'border-zinc-300 bg-zinc-200',
             )}
             aria-label="切换自动刷新"
           >
@@ -174,17 +174,17 @@ export default function ActivitiesPage() {
               className={cn(
                 'inline-block h-3.5 w-3.5 transform rounded-full transition-transform',
                 autoRefresh
-                  ? 'translate-x-4 bg-amber-400'
-                  : 'translate-x-0.5 bg-zinc-500',
+                  ? 'translate-x-4 bg-amber-500'
+                  : 'translate-x-0.5 bg-zinc-400',
               )}
             />
           </button>
-          <span className="font-mono text-[11px] text-zinc-600">共 {total} 条</span>
+          <span className="font-mono text-[11px] text-zinc-400">共 {total} 条</span>
         </div>
       </div>
 
       {/* 过滤栏 */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4">
         <div className="space-y-1">
           <label className="font-mono text-[10px] uppercase tracking-wide text-zinc-500">
             类型
@@ -192,7 +192,7 @@ export default function ActivitiesPage() {
           <select
             value={type}
             onChange={(e) => setType(e.target.value as '' | ActivityType)}
-            className="h-9 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
           >
             {TYPE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -230,7 +230,7 @@ export default function ActivitiesPage() {
       </div>
 
       {/* 时间线 */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+      <div className="rounded-xl border border-zinc-200 bg-white p-4">
         {error ? (
           <ErrorState message={error} onRetry={fetchActivities} />
         ) : loading ? (
@@ -242,7 +242,7 @@ export default function ActivitiesPage() {
         ) : items.length === 0 ? (
           <EmptyState title="暂无活动" description="调整过滤条件或等待新事件" />
         ) : (
-          <ol className="relative space-y-1 before:absolute before:left-[5px] before:top-2 before:h-[calc(100%-16px)] before:w-px before:bg-zinc-800">
+          <ol className="relative space-y-1 before:absolute before:left-[5px] before:top-2 before:h-[calc(100%-16px)] before:w-px before:bg-zinc-200">
             {items.map((a) => {
               const color = TYPE_COLOR[a.type] ?? 'bg-zinc-500';
               const expanded = expandedId === a.id;
@@ -253,11 +253,11 @@ export default function ActivitiesPage() {
                     onClick={() =>
                       setExpandedId(expanded ? null : a.id)
                     }
-                    className="flex w-full items-start gap-3 rounded-md px-2 py-2.5 pl-6 text-left hover:bg-zinc-800/40"
+                    className="flex w-full items-start gap-3 rounded-md px-2 py-2.5 pl-6 text-left hover:bg-zinc-100"
                   >
                     <span
                       className={cn(
-                        'absolute left-[1px] top-3.5 h-2.5 w-2.5 rounded-full ring-2 ring-zinc-900',
+                        'absolute left-[1px] top-3.5 h-2.5 w-2.5 rounded-full ring-2 ring-white',
                         color,
                       )}
                     />
@@ -266,15 +266,15 @@ export default function ActivitiesPage() {
                         <Badge variant="muted" className="shrink-0">
                           {a.type}
                         </Badge>
-                        <span className="truncate text-sm text-zinc-300">
+                        <span className="truncate text-sm text-zinc-700">
                           {a.message}
                         </span>
-                        <span className="ml-auto shrink-0 font-mono text-[10px] text-zinc-600">
+                        <span className="ml-auto shrink-0 font-mono text-[10px] text-zinc-400">
                           {timeAgo(a.timestamp)}
                         </span>
                       </div>
                       {(a.sessionId || a.approvalId) && (
-                        <div className="mt-1 flex gap-3 font-mono text-[10px] text-zinc-600">
+                        <div className="mt-1 flex gap-3 font-mono text-[10px] text-zinc-400">
                           {a.sessionId && <span>session: {a.sessionId.slice(0, 12)}</span>}
                           {a.approvalId && <span>approval: {a.approvalId.slice(0, 8)}</span>}
                         </div>
@@ -285,7 +285,7 @@ export default function ActivitiesPage() {
                         width={14}
                         height={14}
                         className={cn(
-                          'mt-1 shrink-0 text-zinc-600 transition-transform',
+                          'mt-1 shrink-0 text-zinc-400 transition-transform',
                           expanded && 'rotate-90',
                         )}
                       />
@@ -293,10 +293,10 @@ export default function ActivitiesPage() {
                   </button>
                   {expanded && a.details && (
                     <div className="ml-6 mb-2 animate-fade-in-50">
-                      <pre className="overflow-x-auto rounded-md border border-zinc-800 bg-zinc-950 p-3 font-mono text-[11px] leading-relaxed text-zinc-300">
+                      <pre className="overflow-x-auto rounded-md border border-zinc-200 bg-zinc-50 p-3 font-mono text-[11px] leading-relaxed text-zinc-700">
                         <code>{prettyJson(a.details)}</code>
                       </pre>
-                      <div className="mt-1 font-mono text-[10px] text-zinc-600">
+                      <div className="mt-1 font-mono text-[10px] text-zinc-400">
                         {formatDateTime(a.timestamp)}
                       </div>
                     </div>

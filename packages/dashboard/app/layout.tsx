@@ -31,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className={`dark ${inter.variable} ${jetbrains.variable}`}>
-      <body className="min-h-screen bg-zinc-950 text-zinc-100 antialiased">
+    <html lang="zh-CN" className={`${inter.variable} ${jetbrains.variable}`}>
+      <body className="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
         <AuthProvider>
           <AppShell
             sidebar={<Sidebar />}

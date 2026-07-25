@@ -76,19 +76,19 @@ export default function HistoryPage() {
   return (
     <div className="space-y-6 animate-fade-in-50">
       <div className="flex items-center gap-2">
-        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-100">
+        <h1 className="font-mono text-lg font-semibold tracking-tight text-zinc-900">
           审批历史 · HISTORY
         </h1>
         <Button variant="ghost" size="icon" onClick={fetchHistory} aria-label="刷新">
           <RefreshIcon width={16} height={16} />
         </Button>
-        <span className="ml-auto font-mono text-[11px] text-zinc-600">
+        <span className="ml-auto font-mono text-[11px] text-zinc-400">
           共 {total} 条
         </span>
       </div>
 
       {/* 过滤栏 */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-zinc-200 bg-white p-4">
         <div className="space-y-1">
           <label className="font-mono text-[10px] uppercase tracking-wide text-zinc-500">
             决策
@@ -96,7 +96,7 @@ export default function HistoryPage() {
           <select
             value={decision}
             onChange={(e) => setDecision(e.target.value as DecisionFilter)}
-            className="h-9 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
           >
             <option value="">全部</option>
             <option value="approved">已批准</option>
@@ -128,7 +128,7 @@ export default function HistoryPage() {
               setLimit(Number(e.target.value));
               setOffset(0);
             }}
-            className="h-9 rounded-md border border-zinc-800 bg-zinc-950 px-2 text-sm text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
+            className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm text-zinc-900 focus:outline-none focus:ring-2 focus:ring-amber-500/40"
           >
             {LIMITS.map((l) => (
               <option key={l} value={String(l)}>
@@ -143,7 +143,7 @@ export default function HistoryPage() {
       </div>
 
       {/* 表格 */}
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900/50">
+      <div className="rounded-xl border border-zinc-200 bg-white">
         {error ? (
           <div className="p-6">
             <ErrorState message={error} onRetry={fetchHistory} />
@@ -185,7 +185,7 @@ export default function HistoryPage() {
                         onClick={() => setExpandedId(expanded ? null : a.id)}
                         className="cursor-pointer"
                       >
-                        <td className="text-zinc-600">
+                        <td className="text-zinc-400">
                           <ChevronRightIcon
                             width={14}
                             height={14}
@@ -195,14 +195,14 @@ export default function HistoryPage() {
                             )}
                           />
                         </td>
-                        <td className="whitespace-nowrap font-mono text-[11px] text-zinc-400">
+                        <td className="whitespace-nowrap font-mono text-[11px] text-zinc-600">
                           {formatDateTime(a.decidedAt || a.createdAt)}
                         </td>
-                        <td className="whitespace-nowrap font-mono text-[11px] text-zinc-300">
+                        <td className="whitespace-nowrap font-mono text-[11px] text-zinc-700">
                           {truncate(a.agentType || a.sessionId || '—', 16)}
                         </td>
                         <td className="max-w-[280px]">
-                          <code className="font-mono text-[11px] text-zinc-400">
+                          <code className="font-mono text-[11px] text-zinc-600">
                             {truncate(commandToString(a.command), 50)}
                           </code>
                         </td>
@@ -218,7 +218,7 @@ export default function HistoryPage() {
                       </tr>
                       {expanded && (
                         <tr>
-                          <td colSpan={7} className="bg-zinc-950/40">
+                          <td colSpan={7} className="bg-zinc-50">
                             <div className="space-y-3 py-3">
                               <CommandBlock
                                 command={commandToString(a.command)}
@@ -315,10 +315,10 @@ function DetailItem({
 }) {
   return (
     <div className="space-y-0.5">
-      <div className="font-mono text-[10px] uppercase tracking-wide text-zinc-600">
+      <div className="font-mono text-[10px] uppercase tracking-wide text-zinc-400">
         {label}
       </div>
-      <div className={cn('text-zinc-300', mono && 'font-mono text-[11px] break-all')}>
+      <div className={cn('text-zinc-700', mono && 'font-mono text-[11px] break-all')}>
         {value}
       </div>
     </div>

@@ -10,7 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { createApprovalRequest } from '../api/controllers/approvals';
-import { unifiedPushService } from '../notification/unified-push.service';
 import { addActivityListener, type ActivityEvent } from '../api/controllers/activities';
 
 interface ConnectionInfo {
@@ -150,63 +149,22 @@ export class WebSocketHandler {
     const { sessionId, event, requiresApproval } = payload;
 
     // If event requires approval, create approval request
+    // v2.3: createApprovalRequest 内部统一触发飞书推送 + WebSocket 广播
+    //       （修复之前 WebSocket 路径走不通 / REST 路径漏推的 bug）
     if (requiresApproval && event.item?.type === 'command_execution') {
-      const approval = createApprovalRequest({
+      createApprovalRequest({
         sessionId,
         approvalType: 'exec_approval',
         command: event.item.command?.split(' ') || [],
         reason: 'Command requires user approval',
         timeoutSeconds: config.approval.defaultTimeout,
-      });
-
-      // Notify all user's connections about pending approval (WebSocket)
-      this.broadcastToUser(connection.userId, {
-        type: 'approval_request',
-        payload: {
-          approvalId: approval.id,
-          sessionId,
-          approvalType: approval.approvalType,
-          command: approval.command,
-          reason: approval.reason,
-          timeoutSeconds: approval.timeoutSeconds,
-          createdAt: approval.createdAt,
-        },
-      });
-
-      // Send push notification via Feishu
-      unifiedPushService.sendApprovalNotification({
         userId: connection.userId,
-        approvalId: approval.id,
-        command: Array.isArray(approval.command) ? approval.command.join(' ') : String(approval.command || ''),
-        reason: approval.reason || '',
-        sessionName: sessionId,
-        agentType: 'Claude Code', // Would come from event payload in production
-        isUrgent: this.isUrgentCommand(approval.command),
-        expiresAt: new Date(approval.expiresAt).getTime(),
+        agentType: 'Claude Code',
         cwd: event?.cwd || event?.payload?.cwd,
-      }).catch(err => {
-        logger.error('Failed to send push notification', { error: err });
       });
     }
 
     logger.debug('Event received', { connectionId: connection.id, sessionId, eventType: event?.type });
-  }
-
-  /**
-   * Determine if a command should be marked as urgent based on patterns
-   */
-  private isUrgentCommand(command: string[] | string | undefined): boolean {
-    if (!command) return false;
-    const cmdStr = Array.isArray(command) ? command.join(' ') : String(command);
-    const urgentPatterns = [
-      /rm\s+-rf/i,
-      /drop\s+table/i,
-      /delete\s+from/i,
-      /git\s+push\s+--force/i,
-      /chmod\s+777/i,
-      /sudo\s+rm/i,
-    ];
-    return urgentPatterns.some(pattern => pattern.test(cmdStr));
   }
 
   private handleApprovalSubscribe(connection: ConnectionInfo, payload: any): void {
@@ -222,39 +180,6 @@ export class WebSocketHandler {
       approvalId,
       sessionId,
     });
-  }
-
-  /**
-   * Broadcast an approval decision to all connections subscribed to it
-   * Called by the approvals controller after a user submits a decision
-   */
-  broadcastApprovalDecision(sessionId: string, payload: any): void {
-    const { type, payload: msgPayload } = payload;
-
-    for (const connection of this.connections.values()) {
-      let shouldNotify = false;
-
-      // Notify if connection's user matches the approval owner (checked by caller)
-      // or if connection is subscribed to this specific approval
-      if (msgPayload.approvalId && connection.subscribedApprovals?.has(msgPayload.approvalId)) {
-        shouldNotify = true;
-      }
-      // Also notify all connections for this session (legacy support)
-      if (connection.sessionIds.has(sessionId)) {
-        shouldNotify = true;
-      }
-
-      if (shouldNotify) {
-        this.send(connection.ws, { type, payload: msgPayload });
-        logger.debug('Approval broadcast sent', {
-          connectionId: connection.id,
-          userId: connection.userId,
-          approvalId: msgPayload.approvalId,
-          sessionId,
-          type,
-        });
-      }
-    }
   }
 
   private handleApprovalResolved(connection: ConnectionInfo, payload: any): void {

@@ -19,12 +19,12 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variantClasses: Record<ButtonVariant, string> = {
   // default = amber 主 CTA
   default:
-    'bg-amber-500 text-stone-950 hover:bg-amber-400 active:bg-amber-600 shadow-sm shadow-amber-500/20',
+    'bg-amber-600 text-stone-950 hover:bg-amber-500 active:bg-amber-700 shadow-sm shadow-amber-500/20',
   secondary:
-    'bg-zinc-800 text-zinc-100 hover:bg-zinc-700 border border-zinc-700',
-  ghost: 'bg-transparent text-zinc-300 hover:bg-zinc-800/70 hover:text-zinc-100',
+    'bg-zinc-100 text-zinc-800 hover:bg-zinc-200 border border-zinc-300',
+  ghost: 'bg-transparent text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900',
   outline:
-    'bg-transparent text-zinc-200 border border-zinc-700 hover:bg-zinc-800/60 hover:border-zinc-600',
+    'bg-transparent text-zinc-800 border border-zinc-300 hover:bg-zinc-100 hover:border-zinc-400',
   destructive:
     'bg-rose-600 text-white hover:bg-rose-500 active:bg-rose-700 shadow-sm shadow-rose-500/20',
 };

@@ -62,7 +62,7 @@ export function LoginGate() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-50 px-4">
       {/* 背景径向光晕 + 网格 */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.08),transparent_55%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(59,130,246,0.06),transparent_60%)]" />
@@ -75,24 +75,24 @@ export function LoginGate() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
               <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
             </span>
-            <EyeIcon width={22} height={22} className="text-amber-500" />
+            <EyeIcon width={22} height={22} className="text-amber-600" />
           </div>
-          <h1 className="font-mono text-2xl font-bold tracking-tight text-zinc-100">
-            AGENT <span className="text-amber-500">WATCH</span> APPROVE
+          <h1 className="font-mono text-2xl font-bold tracking-tight text-zinc-900">
+            AGENT <span className="text-amber-600">WATCH</span> APPROVE
           </h1>
-          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.3em] text-zinc-600">
+          <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.3em] text-zinc-400">
             守望塔 · 审批网关
           </p>
         </div>
 
         {/* 登录卡片 */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-2xl shadow-black/40">
+        <div className="rounded-xl border border-zinc-200 bg-white/80 p-6 shadow-2xl shadow-black/10">
           {!gatewayOnline ? (
             <div className="space-y-3 text-center">
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-rose-500/30 bg-rose-500/10">
                 <span className="h-2.5 w-2.5 animate-pulse-dot rounded-full bg-rose-500" />
               </div>
-              <div className="font-mono text-sm text-zinc-300">网关离线</div>
+              <div className="font-mono text-sm text-zinc-700">网关离线</div>
               <p className="text-xs text-zinc-500">
                 正在尝试连接网关，请确认 gateway 已启动…
               </p>
@@ -113,7 +113,7 @@ export function LoginGate() {
                 />
               </div>
               {error && (
-                <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">
+                <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-600">
                   {error}
                 </div>
               )}
@@ -127,11 +127,11 @@ export function LoginGate() {
             </form>
           ) : (
             <div className="space-y-4">
-              <p className="text-center text-sm text-zinc-400">
+              <p className="text-center text-sm text-zinc-500">
                 本地模式 · 单人使用，无需密码
               </p>
               {error && (
-                <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-400">
+                <div className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-600">
                   {error}
                 </div>
               )}
@@ -146,7 +146,7 @@ export function LoginGate() {
           )}
         </div>
 
-        <p className="mt-6 text-center font-mono text-[10px] text-zinc-700">
+        <p className="mt-6 text-center font-mono text-[10px] text-zinc-400">
           JWT · 飞书卡片推送 · 实时 WebSocket
         </p>
       </div>

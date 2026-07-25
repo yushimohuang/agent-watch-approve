@@ -19,16 +19,16 @@ export function StatCard({
   loading?: boolean;
 }) {
   const accentMap: Record<string, string> = {
-    amber: 'text-amber-400',
-    emerald: 'text-emerald-400',
-    rose: 'text-rose-400',
-    zinc: 'text-zinc-100',
+    amber: 'text-amber-600',
+    emerald: 'text-emerald-600',
+    rose: 'text-rose-600',
+    zinc: 'text-zinc-900',
   };
   const dotMap: Record<string, string> = {
     amber: 'bg-amber-500',
     emerald: 'bg-emerald-500',
     rose: 'bg-rose-500',
-    zinc: 'bg-zinc-600',
+    zinc: 'bg-zinc-400',
   };
   return (
     <Card className="relative overflow-hidden p-5">
@@ -47,17 +47,17 @@ export function StatCard({
             )}
           >
             {loading ? (
-              <span className="inline-block h-8 w-12 animate-pulse rounded bg-zinc-800" />
+              <span className="inline-block h-8 w-12 animate-pulse rounded bg-zinc-200" />
             ) : (
               value
             )}
           </div>
           {delta && (
-            <div className="text-[11px] text-zinc-600">{delta}</div>
+            <div className="text-[11px] text-zinc-400">{delta}</div>
           )}
         </div>
         {icon && (
-          <div className="text-zinc-700">{icon}</div>
+          <div className="text-zinc-400">{icon}</div>
         )}
       </div>
     </Card>

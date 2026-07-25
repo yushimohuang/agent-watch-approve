@@ -13,15 +13,15 @@ export type BadgeVariant =
   | 'risk-critical';
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-zinc-800 text-zinc-200 border-zinc-700',
-  approved: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  denied: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-  pending: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  muted: 'bg-zinc-800/60 text-zinc-500 border-zinc-700/60',
-  'risk-low': 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  'risk-medium': 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  'risk-high': 'bg-orange-500/15 text-orange-400 border-orange-500/30',
-  'risk-critical': 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+  default: 'bg-zinc-100 text-zinc-800 border-zinc-300',
+  approved: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+  denied: 'bg-rose-500/15 text-rose-600 border-rose-500/30',
+  pending: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+  muted: 'bg-zinc-100 text-zinc-500 border-zinc-200',
+  'risk-low': 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30',
+  'risk-medium': 'bg-amber-500/15 text-amber-600 border-amber-500/30',
+  'risk-high': 'bg-orange-500/15 text-orange-600 border-orange-500/30',
+  'risk-critical': 'bg-rose-500/15 text-rose-600 border-rose-500/30',
 };
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {

@@ -11,7 +11,7 @@ export function Topbar() {
   const { connected: wsConnected } = useWebSocket();
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-zinc-800 bg-zinc-950/80 px-4 pl-14 backdrop-blur-md md:pl-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/80 px-4 pl-14 backdrop-blur-md md:pl-6">
       {/* 连接状态 */}
       <div className="flex items-center gap-3">
         <StatusDot
@@ -20,7 +20,7 @@ export function Topbar() {
           okText="在线"
           failText="离线"
         />
-        <span className="hidden text-zinc-700 sm:inline">·</span>
+        <span className="hidden text-zinc-400 sm:inline">·</span>
         <StatusDot
           label="WS"
           ok={wsConnected}
@@ -33,15 +33,15 @@ export function Topbar() {
       <div className="ml-auto flex items-center gap-3">
         {/* 用户名 */}
         <div className="hidden text-right sm:block">
-          <div className="font-mono text-xs text-zinc-300">
+          <div className="font-mono text-xs text-zinc-700">
             {user?.displayName || '未登录'}
           </div>
-          <div className="text-[10px] text-zinc-600">
+          <div className="text-[10px] text-zinc-400">
             {user?.id ? `id: ${user.id}` : ''}
           </div>
         </div>
         {/* 头像占位 */}
-        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 font-mono text-xs text-amber-400">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300 bg-zinc-50 font-mono text-xs text-amber-600">
           {(user?.displayName || '?').slice(0, 1).toUpperCase()}
         </div>
         <Button
@@ -90,7 +90,7 @@ function StatusDot({
       <span
         className={cn(
           'font-mono text-[11px]',
-          ok ? 'text-emerald-400' : 'text-rose-400',
+          ok ? 'text-emerald-600' : 'text-rose-600',
         )}
       >
         {ok ? okText : failText}

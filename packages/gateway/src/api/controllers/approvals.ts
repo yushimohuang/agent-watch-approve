@@ -9,23 +9,24 @@ import { config } from '../../config';
 import type { AuthRequest } from '../middleware/auth';
 import { logActivity } from './activities';
 import { persistApprovalUpsert } from '../../db/persist';
+import { unifiedPushService } from '../../notification/unified-push.service';
 
 // In-memory store
 export const approvals = new Map();
 const pendingApprovals: string[] = [];
 
 /**
- * 用于在决策后通知 CLI 的回调
- * 由 server.ts 在启动时设置
+ * 用于在审批创建/决策后通过 WebSocket 广播给 Dashboard 和 CLI 的回调
+ * 由 src/index.ts 在启动时设置（指向 wsHandler.broadcastToUser）
  */
-let broadcastApprovalDecision:
-  | ((sessionId: string, payload: any) => void)
+let broadcastToUserFn:
+  | ((userId: string, message: any) => void)
   | null = null;
 
-export function setApprovalBroadcaster(
-  fn: (sessionId: string, payload: any) => void,
+export function setBroadcastToUser(
+  fn: (userId: string, message: any) => void,
 ): void {
-  broadcastApprovalDecision = fn;
+  broadcastToUserFn = fn;
 }
 
 export const ApprovalsController = {
@@ -158,9 +159,9 @@ export const ApprovalsController = {
         pendingApprovals.splice(pendingIndex, 1);
       }
 
-      // 通过 WebSocket 通知 CLI（让 Agent 继续或中断）
-      if (broadcastApprovalDecision) {
-        broadcastApprovalDecision(approval.sessionId, {
+      // 通过 WebSocket 通知所有订阅者（CLI hook 和 Dashboard）
+      if (broadcastToUserFn) {
+        broadcastToUserFn(userId, {
           type: 'approval_response',
           payload: {
             approvalId,
@@ -168,16 +169,18 @@ export const ApprovalsController = {
             inputText,
             decidedBy: userId,
             decidedAt: approval.decidedAt,
+            sessionId: approval.sessionId,
           },
         });
 
-        // Deny / cancel 时额外推一个 session_command 让 CLI 杀掉 Codex 子进程
+        // Deny / cancel 时额外推一个 session_command 让 CLI 杀掉 Agent 子进程
         if (approval.status === 'denied' || approval.status === 'cancelled') {
-          broadcastApprovalDecision(approval.sessionId, {
+          broadcastToUserFn(userId, {
             type: 'session_command',
             payload: {
               command: 'interrupt',
               reason: `Approval ${approval.status} by user`,
+              sessionId: approval.sessionId,
             },
           });
         }
@@ -295,13 +298,13 @@ export const ApprovalsController = {
         timeoutSeconds: body.timeoutMs
           ? Math.ceil(body.timeoutMs / 1000)
           : config.approval.defaultTimeout,
+        userId,
+        riskLevel: body.riskLevel || 'medium',
+        agentType: body.agentType,
+        toolName: body.toolName,
+        toolInput: body.toolInput,
+        cwd: body.cwd,
       });
-
-      (approval as any).userId = userId;
-      (approval as any).riskLevel = body.riskLevel || 'medium';
-      (approval as any).agentType = body.agentType;
-      (approval as any).toolName = body.toolName;
-      (approval as any).toolInput = body.toolInput;
 
       logger.info('Created new approval (find-or-create)', {
         approvalId: approval.id,
@@ -337,11 +340,13 @@ export const ApprovalsController = {
         command,
         reason: body.description || body.reason || 'Agent triggered approval',
         timeoutSeconds: body.timeoutMs ? Math.ceil(body.timeoutMs / 1000) : config.approval.defaultTimeout,
+        userId,
+        riskLevel: body.riskLevel || 'medium',
+        agentType: body.agentType,
+        toolName: body.toolName,
+        toolInput: body.toolInput,
+        cwd: body.cwd,
       });
-
-      // bind to user via metadata
-      (approval as any).userId = userId;
-      (approval as any).riskLevel = body.riskLevel || 'medium';
 
       res.json({ data: approval, success: true });
     } catch (error) {
@@ -391,6 +396,12 @@ export const ApprovalsController = {
 };
 
 // Helper to create approval request
+//
+// v2.3 修复严重 bug：之前这个函数只写内存 + 持久化 + 活动日志，
+// 没有触发飞书推送，也没有 WebSocket 广播。
+// 而实际 hook 脚本（agent-watch-hook.js）走的是 REST /approvals/find-or-create，
+// 根本不经过 WebSocket handleEvent —— 所以飞书 App 永远收不到卡片。
+// 现在在这里统一触发推送和广播，三条路径（REST create / REST find-or-create / WS event）都能正确工作。
 export function createApprovalRequest(data: {
   sessionId: string;
   approvalType: string;
@@ -398,10 +409,18 @@ export function createApprovalRequest(data: {
   files?: string[];
   reason?: string;
   timeoutSeconds?: number;
+  userId?: string;
+  riskLevel?: string;
+  agentType?: string;
+  toolName?: string;
+  toolInput?: any;
+  cwd?: string;
 }) {
   const id = uuidv4();
   const now = new Date();
   const timeout = data.timeoutSeconds || config.approval.defaultTimeout;
+
+  const userId = data.userId || 'system';
 
   const approval = {
     id,
@@ -414,6 +433,12 @@ export function createApprovalRequest(data: {
     timeoutSeconds: timeout,
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + timeout * 1000).toISOString(),
+    userId,
+    riskLevel: data.riskLevel || 'medium',
+    agentType: data.agentType,
+    toolName: data.toolName,
+    toolInput: data.toolInput,
+    cwd: data.cwd,
   };
 
   approvals.set(id, approval);
@@ -423,14 +448,87 @@ export function createApprovalRequest(data: {
   // 记录活动日志
   logActivity({
     type: 'approval_created',
-    userId: (data as any).userId || 'system',
+    userId,
     sessionId: data.sessionId,
     approvalId: id,
     message: `审批请求: ${Array.isArray(data.command) ? data.command.join(' ') : data.command || data.approvalType}`,
     details: { command: data.command, approvalType: data.approvalType, reason: data.reason },
   });
 
+  // 1) WebSocket 广播：让在线 Dashboard / CLI hook 立刻看到新 pending 审批
+  if (broadcastToUserFn) {
+    broadcastToUserFn(userId, {
+      type: 'approval_request',
+      payload: {
+        approvalId: id,
+        sessionId: data.sessionId,
+        approvalType: data.approvalType,
+        command: data.command,
+        reason: data.reason,
+        riskLevel: approval.riskLevel,
+        timeoutSeconds: timeout,
+        createdAt: approval.createdAt,
+        expiresAt: approval.expiresAt,
+      },
+    });
+  }
+
+  // 2) 飞书推送（异步，不阻塞响应）—— 飞书 App 收到带按钮的卡片
+  //    手机/手表/Mac/Windows 全平台自动同步
+  const cmdStr = Array.isArray(data.command) ? data.command.join(' ') : String(data.command || '');
+  unifiedPushService
+    .sendApprovalNotification({
+      userId,
+      approvalId: id,
+      command: cmdStr,
+      reason: data.reason || '',
+      sessionName: data.sessionId,
+      agentType: data.agentType || 'unknown',
+      isUrgent: isUrgentCommand(cmdStr),
+      expiresAt: new Date(approval.expiresAt).getTime(),
+      cwd: data.cwd,
+    })
+    .then(() => {
+      logActivity({
+        type: 'push_sent',
+        userId,
+        sessionId: data.sessionId,
+        approvalId: id,
+        message: `飞书推送已发送: ${cmdStr.slice(0, 60)}`,
+        details: { channel: 'feishu' },
+      });
+    })
+    .catch((err) => {
+      logger.error('Feishu push failed on createApprovalRequest', {
+        approvalId: id,
+        error: err?.message || String(err),
+      });
+      logActivity({
+        type: 'push_failed',
+        userId,
+        sessionId: data.sessionId,
+        approvalId: id,
+        message: `飞书推送失败: ${err?.message || String(err)}`,
+        details: { channel: 'feishu', error: String(err) },
+      });
+    });
+
   return approval;
+}
+
+/**
+ * 判断命令是否"紧急"（影响飞书卡片样式和加急推送）
+ */
+function isUrgentCommand(cmdStr: string): boolean {
+  if (!cmdStr) return false;
+  return [
+    /rm\s+-rf/i,
+    /drop\s+table/i,
+    /delete\s+from/i,
+    /git\s+push\s+--force/i,
+    /chmod\s+777/i,
+    /sudo\s+rm/i,
+  ].some((p) => p.test(cmdStr));
 }
 
 /**
@@ -476,24 +574,26 @@ export function setApprovalDecision(params: {
     pendingApprovals.splice(pendingIndex, 1);
   }
 
-  // 通过 WebSocket 通知 CLI
-  if (broadcastApprovalDecision) {
-    broadcastApprovalDecision(approval.sessionId, {
+  // 通过 WebSocket 通知所有订阅者（飞书卡片 / Dashboard / CLI hook）
+  if (broadcastToUserFn) {
+    broadcastToUserFn(approval.userId || 'system', {
       type: 'approval_response',
       payload: {
         approvalId: params.approvalId,
         decision: approval.status,
         decidedBy: params.decidedBy,
         decidedAt: approval.decidedAt,
+        sessionId: approval.sessionId,
       },
     });
 
     if (approval.status === 'denied' || approval.status === 'cancelled') {
-      broadcastApprovalDecision(approval.sessionId, {
+      broadcastToUserFn(approval.userId || 'system', {
         type: 'session_command',
         payload: {
           command: 'interrupt',
           reason: `Approval ${approval.status} by ${params.decidedBy}`,
+          sessionId: approval.sessionId,
         },
       });
     }

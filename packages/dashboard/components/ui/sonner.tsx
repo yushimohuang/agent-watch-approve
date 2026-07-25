@@ -5,15 +5,15 @@ import { Toaster as SonnerToaster, toast } from 'sonner';
 export function Toaster() {
   return (
     <SonnerToaster
-      theme="dark"
+      theme="light"
       position="top-right"
       richColors={false}
       closeButton
       toastOptions={{
         style: {
-          background: '#18181b',
-          border: '1px solid #27272a',
-          color: '#fafafa',
+          background: '#ffffff',
+          border: '1px solid #e4e4e7',
+          color: '#18181b',
           fontFamily: 'var(--font-inter), ui-sans-serif, system-ui, sans-serif',
           fontSize: '13px',
         },

@@ -24,7 +24,7 @@ import { activitiesRouter } from './api/routes/activities';
 import { WebSocketHandler } from './websocket/handler';
 import { HealthController } from './api/controllers/health';
 import { unifiedPushService } from './notification/unified-push.service';
-import { setApprovalBroadcaster } from './api/controllers/approvals';
+import { setBroadcastToUser } from './api/controllers/approvals';
 import { ensureLocalUser, setLocalUserName, refreshTokens } from './api/controllers/auth';
 import { rateLimit } from './api/middleware/rate-limit';
 import { initPersistence } from './db/persistence';
@@ -141,12 +141,15 @@ wss.on('connection', (ws, req) => {
   wsHandler.handleConnection(ws, req);
 });
 
-// 注册审批决策广播器
-// 当用户通过 HTTP API 决策后，gateway 通过 WebSocket 推送给对应的 CLI/Agent
-setApprovalBroadcaster((sessionId, payload) => {
-  wsHandler.broadcastToSession(sessionId, payload);
+// 注册审批广播器
+// v2.3: 改为按 userId 广播（而不是按 sessionId）
+//   - approval_request: 让 Dashboard 实时看到新增的 pending 审批
+//   - approval_response: 让 CLI hook 收到决策继续/中断
+//   - session_command: deny/cancel 时让 CLI 杀 Agent 子进程
+setBroadcastToUser((userId, message) => {
+  wsHandler.broadcastToUser(userId, message);
 });
-logger.info('Approval broadcaster registered');
+logger.info('Approval broadcaster registered (broadcastToUser)');
 
 // Start server
 const PORT = config.port || 3000;
