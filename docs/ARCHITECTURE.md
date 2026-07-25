@@ -1,7 +1,7 @@
 # Agent Watch / Agent Approve - 技术架构设计文档
 
-> **版本**: 2.1 (国内部署支持版)
-> **日期**: 2026-06-21
+> **版本**: 2.3 (持久化 + Dashboard 静态托管)
+> **日期**: 2026-07-25
 > **状态**: ✅ 与代码同步
 
 ---
@@ -15,17 +15,19 @@
 | **多端覆盖** | 飞书 App 自带 8+ 平台（iOS/Android/Mac/Win/Linux/Watch）|
 | **可观测** | 活动日志（Event Sourcing）记录一切 |
 | **灵活部署** | 支持国内云服务器（¥30-60/年）和 Cloudflare Tunnel（免费）|
+| **零外部依赖** | JSON 文件持久化（原子写），单实例本地部署不需要 Redis / PostgreSQL |
+| **静态 Dashboard** | Next.js 14 静态导出 → Gateway 在 `/dashboard` 直接托管 |
 
 ---
 
 ## 2. 整体架构
 
-### 2.1 5 个进程
+### 2.1 进程模型（生产部署：2 进程；开发：3 进程）
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                                                             │
-│  进程 1: agent-watch CLI (Node.js)                          │
+│  进程 1: agent-watch CLI / IDE Hook (Node.js)               │
 │  ┌────────────────────────────────────────────┐             │
 │  │  Hook Manager → Event Collector            │             │
 │  │  Policy Evaluator → WebSocket Client       │             │
@@ -37,15 +39,17 @@
 │  │  WebSocket Handler (按 session 广播)       │             │
 │  │  Feishu Service (token + 卡片 + webhook)   │             │
 │  │  Activity Logger (Event Sourcing)          │             │
+│  │  Persistence (JSON 文件原子写)             │             │
+│  │  Static /dashboard (托管 Next.js out/)     │             │
 │  └────────────────────────────────────────────┘             │
 │                                                             │
-│  进程 3: Dashboard (Next.js 14)                             │
+│  [仅开发] 进程 3: Dashboard dev server (Next.js)            │
 │  ┌────────────────────────────────────────────┐             │
-│  │  主页 / 设置 / 历史 / 策略 / 详情          │             │
-│  │  WebSocket Client + REST API Client        │             │
+│  │  pnpm dev → http://localhost:3001/dashboard│             │
+│  │  生产构建后产物由 Gateway 直接静态托管     │             │
 │  └────────────────────────────────────────────┘             │
 │                                                             │
-│  进程 4: 反向代理（二选一）                      │
+│  进程 4: 反向代理（二选一，公网部署）            │
 │  ┌────────────────────────────────────────────┐             │
 │  │  国内服务器：nginx + Let's Encrypt        │             │
 │  │  海外用户：Cloudflare Tunnel (cloudflared)│             │
@@ -59,6 +63,8 @@
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> 生产部署：Gateway 进程内同时托管 REST API + WebSocket + 静态 Dashboard，不需要单独的 Dashboard 容器。
 
 ### 2.2 关键数据通道
 
@@ -130,7 +136,16 @@ function evaluate(command: string[]): 'allow' | 'prompt' | 'forbidden';
 ```typescript
 // 主入口（src/index.ts）
 const app = express();
-app.use('/webhook', feishuWebhookRouter);  // 飞书回调（无 auth）
+app.set('trust proxy', trustProxy);   // 让 rate-limit 拿到真实 IP（nginx / CF）
+app.use(helmet());
+app.use(cors({ origin: config.corsOrigins, credentials: true }));
+app.use('/v1', rateLimit);            // 全局速率限制
+
+// 静态托管 Dashboard（packages/dashboard/out）
+app.use('/dashboard', express.static(dashboardDir, { ... }));
+app.get('/dashboard/*', spaFallback);
+
+app.use('/webhook', feishuWebhookRouter);   // 飞书回调（签名校验）
 app.use('/v1/auth', authRouter);            // JWT
 app.use('/v1/sessions', sessionsRouter);
 app.use('/v1/approvals', approvalsRouter);
@@ -143,7 +158,10 @@ app.get('/health', healthCheck);
 const wss = new WebSocketServer({ server, path: '/ws' });
 wss.on('connection', wsHandler.handleConnection);
 
-unifiedPushService.initialize();  // 启动飞书
+// 启动时从 gateway-state.json 恢复 users/sessions/approvals/policies/activities/refreshTokens
+await initPersistence({ users, sessions, approvals, policies, activities: activityLog, refreshTokens });
+ensureLocalUser();                       // 本地优先：自动建 anonymous user
+unifiedPushService.initialize();         // 启动飞书
 server.listen(3000);
 ```
 
@@ -189,7 +207,7 @@ type ActivityEventType =
   | 'device_connected' | 'device_disconnected'
   | 'policy_updated' | 'user_login' | 'error';
 
-// 内存存储（生产用 Redis/PostgreSQL）
+// 内存数组 + JSON 文件持久化（gateway-state.json，原子写）
 const activityLog: ActivityEvent[] = [];
 const MAX_LOG_SIZE = 1000;
 
@@ -197,7 +215,27 @@ const MAX_LOG_SIZE = 1000;
 const listeners: Set<(event) => void> = new Set();
 ```
 
-### 3.7 mDNS 局域网发现
+### 3.7 Persistence（JSON 文件原子写）
+
+**职责**：将内存里的 users / sessions / approvals / policies / activities / refreshTokens 落盘到 `gateway-state.json`
+
+```typescript
+// packages/gateway/src/db/persistence.ts
+async function saveState(state: PersistedState): Promise<void> {
+  await fs.writeFile(TMP_PATH, JSON.stringify(state, null, 2));  // 先写 .tmp
+  await fs.rename(TMP_PATH, DB_PATH);                            // 再原子 rename
+}
+
+// 启动时：loadState() → 注入内存 Map
+// 运行期：定时（默认 30s）+ 脏标记 + SIGTERM/SIGINT 各保存一次
+```
+
+**为什么不引入 Redis / PostgreSQL**：
+- 单实例本地部署是当前唯一支持形态
+- JSON 文件即可满足「重启不丢数据」
+- 引入外部数据库 = 多一个进程 + 多一个故障点 + 多一份配置
+
+### 3.8 mDNS 局域网发现
 
 **职责**：让手机/手表自动发现 Gateway
 
@@ -338,8 +376,8 @@ function setApprovalDecision({ approvalId, decision, decidedBy }) {
 
 ```
 本地：pnpm dev
-- Gateway: localhost:3000
-- Dashboard: localhost:3001
+- Gateway: localhost:3000（包含静态 /dashboard，但开发时建议用 Dashboard 自己的 dev server）
+- Dashboard dev: cd packages/dashboard && pnpm dev → localhost:3001/dashboard
 - 飞书 webhook: cloudflared tunnel --url http://localhost:3000（海外用户）
 - 飞书 webhook: 国内云服务器 + nginx 反向代理（国内用户）
 ```
@@ -347,36 +385,42 @@ function setApprovalDecision({ approvalId, decision, decidedBy }) {
 ### 6.3 生产模式（Docker Compose）
 
 ```yaml
+# docker-compose.yml（精简后）
 services:
   gateway:
-    build: ./packages/gateway
+    build:
+      context: .
+      dockerfile: packages/gateway/Dockerfile
     ports: ['3000:3000']
-    env: [FEISHU_*, JWT_*, REDIS_*]
+    environment:
+      - JWT_SECRET=${JWT_SECRET:?...}     # 必须 32+ 字符
+      - FEISHU_*                          # 飞书凭证
+      - PUBLIC_URL                        # 公网地址
+      - ACCESS_PASSWORD                   # 公网访问密码（必填）
+      - TRUST_PROXY=1                     # 信任 nginx / CF
+      - DASHBOARD_ENABLED=true            # 静态托管 /dashboard
+    volumes:
+      - gateway_data:/app/data            # gateway-state.json 持久化
+    restart: unless-stopped
 
-  dashboard:
-    build: ./packages/dashboard
-    ports: ['3001:3000']
-
-  nginx:
-    image: nginx:latest
-    ports: ['80:80', '443:443']
-    volumes: [nginx.conf:/etc/nginx/conf.d]
-    depends_on: [gateway, dashboard]
-
-  redis:
-    image: redis:7-alpine
-    volumes: [redis_data:/data]
+# 没有 dashboard 服务：构建时把 packages/dashboard/out 内嵌到 gateway 镜像
+# 没有 redis 服务：单实例不需要
+# 没有 postgres 服务：单实例不需要
 ```
+
+> 反向代理（nginx / Cloudflare Tunnel）在 Docker Compose 之外维护，便于证书管理。
 
 ### 6.4 生产环境 Checklist
 
-- [ ] JWT_SECRET 改强（32+ 字符）
-- [ ] FEISHU_ENCRYPT_KEY 配置（加密模式）
+- [ ] JWT_SECRET 改强（32+ 字符，建议 `openssl rand -hex 32`）
+- [ ] FEISHU_VERIFICATION_TOKEN 或 FEISHU_ENCRYPT_KEY 配置（签名强制）
 - [ ] 国内用户：nginx + Let's Encrypt 已配置
 - [ ] 海外用户：Cloudflare 命名隧道（非临时域名）
 - [ ] CORS_ORIGINS 限制具体域名
-- [ ] RATE_LIMIT 调整
-- [ ] Redis 持久化启用
+- [ ] RATE_LIMIT 调整（按业务量）
+- [ ] TRUST_PROXY=1（反代场景必填，否则 rate-limit 失效）
+- [ ] ACCESS_PASSWORD 已配置（公网暴露场景必填）
+- [ ] gateway_data volume 已挂载（保证 gateway-state.json 不丢）
 
 ---
 
@@ -385,13 +429,12 @@ services:
 | 层 | 技术 | 理由 |
 |---|---|---|
 | **Gateway** | Express.js + WebSocket (ws) | 简单、生态成熟、WS 性能足够 |
-| **Dashboard** | Next.js 14 (App Router) | SSR/SSG + 路由约定 |
+| **Dashboard** | Next.js 14 (App Router, 静态导出) | 构建产物纯静态，由 Gateway 直接托管 |
 | **CLI** | Node.js + Commander.js | 跨平台、npm 生态 |
 | **推送** | 飞书 Open API | 0 费用、多端覆盖 |
+| **持久化** | JSON 文件（原子写） | 单实例本地部署足够；多实例再考虑外部存储 |
 | **部署** | Docker + docker-compose | 简单可移植 |
 | **公网** | 国内：nginx + Let's Encrypt / 海外：Cloudflare Tunnel | 灵活 |
-| **缓存** | Redis | 预留（当前用内存） |
-| **数据库** | PostgreSQL | 预留（当前用内存） |
 
 **未来考虑**：
 - 高并发可换 Fastify（Express 性能瓶颈时）
@@ -414,29 +457,32 @@ services:
 
 ### 8.2 扩展路径
 
-- **横向扩展**：Gateway 多实例 + Redis Pub/Sub 广播
-- **数据持久化**：从内存 → Redis → PostgreSQL 渐进
-- **多 Gateway**：通过 Cloudflare Tunnel 负载均衡
+- **横向扩展**：Gateway 多实例 + Redis Pub/Sub 广播（**仅当单实例扛不住时再上**）
+- **数据持久化**：JSON 文件 → Redis（共享状态）→ PostgreSQL（结构化查询）渐进
+- **多 Gateway**：通过 Cloudflare Tunnel / nginx 负载均衡
+
+> 当前单实例本地部署不需要 Redis；引入前先确认是否真的需要多实例。
 
 ---
 
 ## 9. 测试策略
 
-### 9.1 单元测试
+### 9.1 CLI 离线 E2E
 
 ```bash
-# Claude Code 适配器 (9 种 Agent)
-npx jest tests/agents/chinese-agents.test.ts
+# install / 适配器翻译 / find-or-create / WebSocket 推送核心逻辑
+node packages/cli/bin/e2e-verify.js
 ```
 
-### 9.2 E2E 测试
+### 9.2 手动 E2E（真实 Gateway）
 
 ```bash
-# 飞书 mock 端到端
-npx jest tests/e2e/feishu-mock-e2e.test.ts
-
-# CLI 端到端 (5 项核心验证)
-cd ../cli && node bin/e2e-verify.js
+# 启动 Gateway 后用 hook 触发一条审批
+node packages/cli/bin/agent-watch-hook.js \
+  --gateway http://localhost:3000 \
+  --user local-user --session test-session \
+  --approve-timeout 20 \
+  <<< '{"tool_name":"Bash","command":"rm -rf /tmp/test","cwd":"/"}'
 ```
 
 ### 9.3 真实环境验证
@@ -445,6 +491,9 @@ cd ../cli && node bin/e2e-verify.js
 - 飞书 app 收卡片
 - 点按钮 → Gateway 收到回调
 - CLI 收到决策
+
+> 当前仓库未内置 Jest/Vitest 套件（早期 `tests/` 目录已移除）。
+> 如需补充自动化测试，可在 `packages/gateway/tests/` 下新建并接入 `vitest`。
 
 ---
 
@@ -457,9 +506,9 @@ cd ../cli && node bin/e2e-verify.js
 | nginx/Gateway 崩溃（国内） | Docker/systemd restart unless-stopped |
 | 飞书 token 过期 | 自动重取（提前 5 分钟刷新） |
 | WebSocket 断连 | CLI 自动重连 + 心跳 |
-| Redis 不可用 | 降级为内存存储（仅单机） |
+| 持久化文件损坏 | gateway-state.json 写入用 .tmp + rename 原子写，损坏概率极低；如确实损坏，启动时会降级为内存模式并日志告警 |
 | 飞书 webhook 失败 | 飞书自动重试（官方保证） |
 
 ---
 
-*文档版本: 2.1 | 最后更新: 2026-06-21*
+*文档版本: 2.3 | 最后更新: 2026-07-25*

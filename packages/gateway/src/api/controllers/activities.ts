@@ -8,6 +8,7 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../../utils/logger';
 import type { AuthRequest } from '../middleware/auth';
+import { persistActivity } from '../../db/persist';
 
 // 活动事件类型
 export type ActivityEventType =
@@ -37,8 +38,8 @@ export interface ActivityEvent {
   timestamp: string;
 }
 
-// 内存存储（生产环境用 Redis/PostgreSQL）
-const activityLog: ActivityEvent[] = [];
+// 内存存储（v2.3 起随 gateway-state.json 一起持久化）
+export const activityLog: ActivityEvent[] = [];
 const MAX_LOG_SIZE = 1000;
 
 // 活动事件监听器
@@ -78,6 +79,8 @@ export function logActivity(params: {
   if (activityLog.length > MAX_LOG_SIZE) {
     activityLog.splice(0, activityLog.length - MAX_LOG_SIZE);
   }
+  // v2.3：标记脏数据，等待 30s 防抖落盘
+  persistActivity();
 
   // 通知监听器（用于 WebSocket 实时推送）
   for (const listener of listeners) {

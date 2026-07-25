@@ -86,18 +86,45 @@ pnpm build
 docker-compose up -d --build
 ```
 
+启动后：
+- API / WebSocket：`http://localhost:3000`
+- Dashboard：`http://localhost:3000/dashboard`（Gateway 镜像内已打包 Next.js 静态导出产物，无需独立 dashboard 容器）
+- 持久化：`gateway-state.json` 挂载到 `gateway_data` volume，重启不丢数据
+
+> 公网部署时设置 `PUBLIC_URL` 与 `ACCESS_PASSWORD`，并配置 nginx / Cloudflare Tunnel 反向代理。
+
 > **安装 hook 后**，Claude Code / Cursor 执行危险命令时，审批卡片自动推到飞书，你点批准即可。
 
 ### 快速体验（无需飞书凭证）
 
-```bash
-cd packages/gateway
-npx tsx src/seed-approvals.ts test-user
+通过 `agent-watch-hook.js` 直接给 Gateway 发一条审批请求即可触发完整流程（开发模式下若未配置飞书凭证，Gateway 只在内存中创建审批，不推送卡片）：
 
-# 飞书 App 收到卡片（开发模式跳过飞书推送）
-# 直接调 Gateway API 审批：
+```bash
+# 1) 启动 Gateway
+cd packages/gateway && pnpm dev
+
+# 2) 新终端：自动匿名登录拿 token（本地默认用户，无需密码）
+curl -X POST http://localhost:3000/v1/auth/auto-anonymous
+# → 返回 { "data": { "accessToken": "..." } }
+
+# 3) 用 hook 触发一条审批（会写入 pending 列表）
+node packages/cli/bin/agent-watch-hook.js \
+  --gateway http://localhost:3000 \
+  --user local-user \
+  --session test-session \
+  --approve-timeout 20 \
+  <<< '{"tool_name":"Bash","command":"rm -rf /tmp/test","cwd":"/"}'
+
+# 4) 打开 Dashboard 查看 / 操作
+#    http://localhost:3000/dashboard
+```
+
+也可直接调用 REST API 决策：
+
+```bash
 curl -X POST http://localhost:3000/v1/approvals/{approval_id} \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <accessToken>" \
   -d '{"decision":"approve"}'
 ```
 
@@ -199,9 +226,9 @@ cloudflared tunnel --url http://localhost:3000
 ### 验证
 
 ```bash
-cd packages/gateway
-npx tsx src/seed-approvals.ts test-user
-# ✉️ 飞书 App 收到卡片 → 点"批准"或"拒绝"
+# 启动 Gateway 后，参考上节"快速体验"用 hook 触发审批
+# 配置了飞书凭证 → 飞书 App 收到卡片 → 点"批准"或"拒绝"
+# 没配飞书 → 在 http://localhost:3000/dashboard 直接操作
 ```
 
 ---
@@ -337,9 +364,14 @@ agent-watch-approve/
 │   ├── gateway/          # API Gateway + WebSocket 中枢
 │   │   ├── src/agents/   # AI 代理适配器（9 种 Agent）
 │   │   ├── src/api/      # REST API（/approvals, /ws, find-or-create）
-│   │   ├── src/db/       # JSON 文件持久化
+│   │   ├── src/db/       # JSON 文件持久化（原子写）
 │   │   ├── src/notification/ # 飞书推送服务
+│   │   ├── src/security/ # 一次性 action token（HMAC）
 │   │   └── src/websocket/    # WebSocket 实时通信 + 审批广播
+│   ├── dashboard/        # 管理后台（Next.js 14，静态导出 → 由 Gateway 在 /dashboard 托管）
+│   │   ├── app/          # App Router 页面（activities / history / policies / settings）
+│   │   ├── components/   # 业务组件 + 通用 UI
+│   │   └── lib/          # API 客户端 + WebSocket + Auth Context
 │   └── shared/           # 跨包共享类型定义
 ├── docs/                 # 详细文档
 ├── docker-compose.yml    # Docker 部署
@@ -379,22 +411,19 @@ agent-watch-approve/
 # 类型检查
 pnpm typecheck
 
-# E2E 验证（5 项全测）
-cd packages/gateway
-node ../cli/bin/e2e-verify.js
+# E2E 验证（CLI install + 适配器翻译 + find-or-create + WebSocket 推送，离线即可跑）
+node packages/cli/bin/e2e-verify.js
 
 # 手动 E2E：Gateway 运行后，新终端跑：
-node ../cli/bin/agent-watch-hook.js \
+node packages/cli/bin/agent-watch-hook.js \
   --gateway http://localhost:3000 \
   --user local-user \
   --session test-session \
   --approve-timeout 20 \
   <<< '{"tool_name":"Bash","command":"rm -rf /tmp/test","cwd":"/"}'
-
-# Jest 测试（当前版本未启用，请使用 e2e-verify.js 端到端验证）
-# npx jest tests/e2e/feishu-mock-e2e.test.ts
-# npx jest tests/agents/chinese-agents.test.ts
 ```
+
+> 当前仓库未内置 Jest 单测套件；如需补充，可在 `packages/gateway/tests/` 下新建并接入 `vitest`/`jest`。
 
 ---
 
@@ -407,6 +436,12 @@ cd packages/gateway && pnpm dev
 
 # 新终端：安装 IDE Hook（Claude Code + Cursor）
 agentapprove install
+
+# Dashboard 开发（独立 dev server，热更新）
+cd packages/dashboard && pnpm dev
+# → http://localhost:3001/dashboard
+# 生产构建：pnpm build → 产物 packages/dashboard/out/
+# Gateway 启动时会自动静态托管 out/，访问 http://localhost:3000/dashboard
 
 # 代码格式化
 pnpm format

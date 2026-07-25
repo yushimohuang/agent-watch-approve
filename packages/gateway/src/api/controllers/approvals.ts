@@ -363,6 +363,8 @@ export const ApprovalsController = {
 
       let history = Array.from(approvals.values())
         .filter(a => a.status !== 'pending')
+        // v2.3 修复越权：必须按 userId 过滤，否则会泄露其他用户的审批历史
+        .filter(a => (a as any).userId === userId)
         .filter(a => !sessionId || a.sessionId === sessionId)
         .filter(a => !decision || a.status === decision)
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

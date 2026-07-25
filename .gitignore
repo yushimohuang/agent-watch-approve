@@ -47,8 +47,5 @@ coverage/
 # TypeScript build info
 *.tsbuildinfo
 
-# Dashboard (已移除，保留目录以便清理)
-packages/dashboard/
-
 # Gateway runtime state (auto-generated, do NOT commit)
 packages/gateway/gateway-state*.json

@@ -16,7 +16,10 @@
  */
 
 import { Command } from 'commander';
-import { version } from '../package.json' assert { type: 'json' };
+
+// 读取版本号：用 require 避免 import assertion 对 module 设置的硬性要求
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../package.json') as { version: string };
 
 const program = new Command();
 

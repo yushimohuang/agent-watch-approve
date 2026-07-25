@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Watchtower 主题 token ===== */
+:root {
+  --background: #09090b; /* zinc-950 */
+  --foreground: #fafafa;
+  --card: #18181b; /* zinc-900 */
+  --border: #27272a; /* zinc-800 */
+  --accent: #f59e0b; /* amber-500 */
+  --font-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-jetbrains: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 径向蓝色微染（顶部）+ 极淡网格 */
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(59, 130, 246, 0.06), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(245, 158, 11, 0.04), transparent 55%),
+    linear-gradient(to right, rgba(63, 63, 70, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(63, 63, 70, 0.08) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+  background-attachment: fixed;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b;
+}
+::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 6px;
+  border: 2px solid #09090b;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+/* 选中文本 */
+::selection {
+  background: rgba(245, 158, 11, 0.3);
+  color: #fafafa;
+}
+
+/* 表格样式工具类 */
+@layer components {
+  .data-table {
+    @apply w-full text-sm;
+  }
+  .data-table thead th {
+    @apply border-b border-zinc-800 px-3 py-2 text-left font-mono text-[11px] font-medium uppercase tracking-wider text-zinc-500;
+  }
+  .data-table tbody td {
+    @apply border-b border-zinc-800/60 px-3 py-2.5 text-zinc-300;
+  }
+  .data-table tbody tr:hover td {
+    @apply bg-zinc-800/30;
+  }
+}
+
+/* select 原生元素深色适配 */
+select {
+  background-color: #09090b;
+  color: #fafafa;
+}
+select option {
+  background-color: #18181b;
+  color: #fafafa;
+}

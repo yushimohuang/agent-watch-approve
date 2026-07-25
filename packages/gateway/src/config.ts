@@ -14,22 +14,6 @@ export const config = {
   // CORS
   corsOrigins: (process.env.CORS_ORIGINS || '*').split(','),
 
-  // Database
-  database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    username: process.env.DB_USERNAME || 'postgres',
-    password: process.env.DB_PASSWORD || 'postgres',
-    database: process.env.DB_NAME || 'agentwatch',
-  },
-
-  // Redis
-  redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD,
-  },
-
   // JWT
   // [v2.1 安全] 拒绝弱默认 secret：生产环境必须显式设置强密钥（>=32 字符）
   jwt: (() => {

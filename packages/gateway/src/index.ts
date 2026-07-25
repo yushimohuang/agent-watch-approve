@@ -1,12 +1,14 @@
 /**
  * Agent Watch Gateway Server
- * 
+ *
  * REST API + WebSocket Server for Agent Watch
  */
 
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
+import fs from 'fs';
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import { config } from './config';
@@ -23,16 +25,27 @@ import { WebSocketHandler } from './websocket/handler';
 import { HealthController } from './api/controllers/health';
 import { unifiedPushService } from './notification/unified-push.service';
 import { setApprovalBroadcaster } from './api/controllers/approvals';
-import { ensureLocalUser, setLocalUserName } from './api/controllers/auth';
+import { ensureLocalUser, setLocalUserName, refreshTokens } from './api/controllers/auth';
 import { rateLimit } from './api/middleware/rate-limit';
-import { initPersistence, markDirty } from './db/persistence';
+import { initPersistence } from './db/persistence';
 import { users } from './api/controllers/auth';
 import { sessions, events } from './api/controllers/sessions';
 import { approvals } from './api/controllers/approvals';
 import { policies } from './api/controllers/policies';
+import { activityLog } from './api/controllers/activities';
 
 const app = express();
 const server = createServer(app);
+
+// v2.3：信任反向代理（nginx / Cloudflare / 飞书回调）
+// 否则 req.ip 拿到的全是代理 IP，rate-limit 形同虚设
+const trustProxy = process.env.TRUST_PROXY;
+if (trustProxy === '1' || trustProxy === 'true') {
+  app.set('trust proxy', 1);
+} else if (trustProxy && trustProxy !== '0' && trustProxy !== 'false') {
+  // 支持 'loopback' / 'uniquelocal' / 具体 CIDR
+  app.set('trust proxy', trustProxy);
+}
 
 // Middleware
 app.use(helmet());
@@ -43,6 +56,33 @@ app.use(cors({
 app.use(express.json());
 // Global rate limit on all API routes
 app.use('/v1', rateLimit);
+
+// v2.3：静态托管 Dashboard（packages/dashboard 构建产物）
+// 优先级：env DASHBOARD_DIR > packages/dashboard/out > packages/dashboard/.next/static
+// 访问路径：/dashboard/*
+const dashboardEnabled = (process.env.DASHBOARD_ENABLED ?? 'true') !== 'false';
+if (dashboardEnabled) {
+  const dashboardDir =
+    process.env.DASHBOARD_DIR ||
+    path.resolve(__dirname, '..', '..', 'dashboard', 'out');
+  if (fs.existsSync(dashboardDir)) {
+    app.use('/dashboard', express.static(dashboardDir, {
+      maxAge: '1h',
+      index: 'index.html',
+      fallthrough: true,
+    }));
+    // SPA 回退：/dashboard/* 子路由都返回 index.html
+    app.get('/dashboard/*', (_req, res) => {
+      res.sendFile(path.join(dashboardDir, 'index.html'));
+    });
+    app.get('/dashboard', (_req, res) => {
+      res.sendFile(path.join(dashboardDir, 'index.html'));
+    });
+    logger.info('Dashboard static served', { dir: dashboardDir, path: '/dashboard' });
+  } else {
+    logger.info('Dashboard dir not found, skip static serving', { dir: dashboardDir });
+  }
+}
 
 // [重要] 飞书 webhook 路由必须先注册（在 body 限制前）— 飞书事件体可能较大
 // 这里只对 webhook 路径跳过 helmet 的某些限制（飞书要求暴露 webhooks）
@@ -111,13 +151,20 @@ logger.info('Approval broadcaster registered');
 // Start server
 const PORT = config.port || 3000;
 
-// Initialize SQLite and restore state before accepting connections
+// Initialize persistence and restore state before accepting connections
 (async () => {
   try {
-    await initPersistence(users, sessions, approvals, policies);
+    await initPersistence({
+      users,
+      sessions,
+      approvals,
+      policies,
+      activities: activityLog,
+      refreshTokens,
+    });
     logger.info('Persistent state restored into memory maps');
   } catch (err) {
-    logger.error('Failed to initialize SQLite, continuing in memory-only mode', { error: err });
+    logger.error('Failed to initialize persistence, continuing in memory-only mode', { error: err });
   }
 
   // [v2.1 本地优先] 启动时确保本地 user 存在

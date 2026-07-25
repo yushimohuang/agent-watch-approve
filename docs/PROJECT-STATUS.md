@@ -1,8 +1,8 @@
 # Agent Watch / Agent Approve - 项目状态报告
 
-> **最后更新**：2026-06-21
-> **当前版本**：v2.1（国内部署支持版）
-> **核心变化**：支持国内云服务器 + nginx 部署（Cloudflare Tunnel 适合海外用户）
+> **最后更新**：2026-07-25
+> **当前版本**：v2.3（持久化 + Dashboard 静态托管）
+> **核心变化**：JSON 文件原子写持久化、Next.js 14 静态导出 Dashboard、安全加固
 
 ---
 
@@ -14,7 +14,7 @@
 
 ---
 
-## 二、当前架构（飞书单通道）
+## 二、当前架构（飞书单通道 + 静态 Dashboard）
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
@@ -37,6 +37,7 @@
 │  · 飞书推送（interactive 卡片）      · mDNS 局域网发现            │
 │  · WebSocket 实时广播                · JWT 认证                  │
 │  · 多 Agent 适配器                  · 策略引擎                  │
+│  · JSON 文件持久化（原子写）         · 静态托管 Dashboard        │
 └───────────────────┬───────────────────────────────────────────────┘
                     │
          ┌──────────┴──────────┐
@@ -53,7 +54,7 @@
 │  你的飞书 App（手机/手表/Mac/Windows/Linux）                       │
 │  ┌────────────┐  ┌──────────────┐                                 │
 │  │ 飞书 App   │  │ Dashboard    │                                 │
-│  │ 带按钮卡片  │  │ Web UI       │                                 │
+│  │ 带按钮卡片  │  │ /dashboard   │                                 │
 │  └────────────┘  └──────────────┘                                 │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -67,6 +68,14 @@
 | JPush | ❌ 已移除 | 简化架构 |
 | 其它厂商 | ❌ 已移除 | 简化架构 |
 
+### 持久化
+
+| 仓库 | 状态 | 说明 |
+|---|---|---|
+| **JSON 文件**（`gateway-state.json`） | ✅ **当前方案** | 原子写（先写 .tmp 再 rename），重启自动恢复，单实例无需 Redis/PostgreSQL |
+| Redis | ❌ 已移除 | 单实例本地部署不需要 |
+| PostgreSQL | ❌ 已移除 | 单实例本地部署不需要 |
+
 ---
 
 ## 三、项目结构（4 个包）
@@ -75,9 +84,9 @@
 agent-watch-approve/
 ├── packages/
 │   ├── cli/                  # 桌面端 CLI 工具
-│   │   ├── agent-watch.js    # 可直接运行的 JS 入口
+│   │   ├── bin/              # agent-watch-hook.js / agent-watch-adapter.js / e2e-verify.js
 │   │   ├── src/
-│   │   │   ├── commands/     # login, start, status, config, devices
+│   │   │   ├── commands/     # login, start, status, config, devices, install
 │   │   │   ├── core/         # hook-manager, websocket-client, api-client, event-collector, policy-evaluator
 │   │   │   └── utils/
 │   │   └── scripts/          # e2e-deny-kills-process (内联 fake-agent 脚本)
@@ -88,40 +97,26 @@ agent-watch-approve/
 │   │   │   │   └── hooks/    # Hook 注入脚本（bash/py）
 │   │   │   ├── api/
 │   │   │   │   ├── controllers/  # approvals, auth, settings, activities, feishu-webhook, ...
-│   │   │   │   ├── middleware/   # auth (JWT)
+│   │   │   │   ├── middleware/   # auth (JWT) + rate-limit
 │   │   │   │   └── routes/       # REST 路由注册
+│   │   │   ├── db/               # persistence.ts（JSON 原子写）+ persist.ts
 │   │   │   ├── notification/     # 飞书推送（卡片构建 + 服务 + webhook）
+│   │   │   ├── security/         # approval-action-token.ts（一次性 HMAC）
 │   │   │   ├── websocket/        # WebSocket 连接管理
 │   │   │   ├── network/          # mDNS 局域网发现
 │   │   │   └── utils/            # 日志
-│   │   ├── scripts/
-│   │   │   ├── dev/              # (空 — 历史开发脚本已合并到 tests)
-│   │   │   └── inject-approval.ts # 真实 WS 流程 mock 注入
-│   │   ├── tests/
-│   │   │   ├── e2e/              # 全流程测试
-│   │   │   │   ├── feishu-mock-e2e.test.ts
-│   │   │   │   ├── real-flow-e2e.test.ts
-│   │   │   │   └── .tmp/                 # 测试临时数据
-│   │   │   ├── agents/           # Agent 适配器测试
-│   │   │   └── api/              # API 测试
 │   │   ├── dist/                 # 编译产物
 │   │   ├── .env.example          # 环境变量模板
 │   │   ├── Dockerfile
 │   │   ├── tsconfig.json
 │   │   └── package.json
 │   │
-│   ├── dashboard/            # Web 仪表盘 (Next.js 14)
-│   │   ├── src/
-│   │   │   ├── app/          # 页面路由
-│   │   │   │   ├── page.tsx              # 主页
-│   │   │   │   ├── settings/page.tsx     # 推送设置
-│   │   │   │   ├── history/page.tsx      # 审批历史
-│   │   │   │   ├── policies/page.tsx     # 策略管理
-│   │   │   │   └── approvals/[id]/page.tsx # 审批详情
-│   │   │   ├── components/dashboard/     # 业务组件
-│   │   │   ├── components/ui/            # 通用 UI 组件
-│   │   │   └── lib/                      # API 客户端 + WebSocket
-│   │   ├── Dockerfile
+│   ├── dashboard/            # 管理后台 (Next.js 14, 静态导出 → Gateway 在 /dashboard 托管)
+│   │   ├── app/              # App Router: /, /activities, /history, /policies, /settings
+│   │   ├── components/       # 业务组件 (approval-card, sidebar, topbar, login-gate, ...) + ui/
+│   │   ├── lib/              # api.ts (REST) + ws.ts (WebSocket) + auth-context.tsx + types.ts
+│   │   ├── next.config.mjs   # output: 'export', basePath: '/dashboard'
+│   │   ├── tailwind.config.ts
 │   │   └── package.json
 │   │
 │   └── shared/               # 跨包共享类型
@@ -134,25 +129,22 @@ agent-watch-approve/
 │           ├── session.ts
 │           └── websocket.ts
 │
-├── docs/                     # 5 个 v2.0 文档
+├── docs/                     # v2.x 文档
 │   ├── PROJECT-STATUS.md     # 本文件
 │   ├── PRD.md                # 产品需求
 │   ├── ARCHITECTURE.md       # 技术架构
 │   ├── END-TO-END-FLOW.md    # 端到端流程
 │   ├── USER-GUIDELINES.md    # 用户使用守则
-│   └── archive/
-│       ├── jpush/            # 已移除的 JPush 文档
-│       └── mobile-era/       # 已移除的 mobile 时代文档
-│         ├── PHONE-INTEGRATION.md
-│         ├── WATCH-INTEGRATION.md
-│         ├── ANDROID_WEAR_OS_DESIGN.md
-│         └── NO-AGENT-STATE.md
+│   ├── FEISHU-SETUP.md       # 飞书配置详解
+│   └── TRAE-DUAL-LAYER.md    # Trae 双层拦截
 │
 ├── docker-compose.yml
 ├── .env.example
 ├── .gitignore
 └── README.md
 ```
+
+> 当前仓库未内置 `tests/`、`scripts/dev/`、`scripts/inject-approval.ts`、`seed-approvals.ts`。E2E 验证统一走 `packages/cli/bin/e2e-verify.js`（离线自测）和 `agent-watch-hook.js`（真实 Gateway 流程）。
 
 ---
 
@@ -210,21 +202,11 @@ agent-watch-approve/
 
 ## 五、测试结果
 
-### 5.1 E2E 全流程测试
+### 5.1 CLI 端到端（离线自测）
+
+`packages/cli/bin/e2e-verify.js` 离线验证 install / 适配器翻译 / find-or-create / WebSocket 推送的核心逻辑：
 
 ```
-飞书 mock E2E (feishu-mock-e2e.test.ts): ✅
-├── 1. 健康检查           ✅
-├── 2. 注册 + 登录        ✅
-├── 3. 创建审批           ✅
-├── 4. 待审批列表         ✅
-├── 5. 提交决策（批准）    ✅
-├── 6. 审批历史           ✅
-├── 7. 活动日志           ✅
-├── 8. 飞书卡片构建       ✅
-├── 9. 飞书 direct 跳转   ✅
-└── 10. 推送配置          ✅
-
 CLI 端到端 (e2e-verify.js): 5/5 通过 ✅
 ├── Claude Code install    ✅
 ├── IDE 格式翻译           ✅
@@ -232,13 +214,30 @@ CLI 端到端 (e2e-verify.js): 5/5 通过 ✅
 └── WebSocket 实时推送     ✅
 ```
 
-### 5.2 自动化测试
+### 5.2 手动 E2E（真实 Gateway 流程）
 
-| 测试 | 状态 |
-|---|---|
-| feishu-mock-e2e.test.ts | ✅ |
-| chinese-agents.test.ts | ✅ |
-| watch-mini-e2e.test.ts | ✅ |
+启动 Gateway 后用 `agent-watch-hook.js` 直接打一条审批请求，验证 REST + WebSocket + 持久化 + Dashboard 全链路：
+
+```bash
+# 1) Gateway
+cd packages/gateway && pnpm dev
+
+# 2) 拿 token
+curl -X POST http://localhost:3000/v1/auth/auto-anonymous
+
+# 3) 触发审批
+node packages/cli/bin/agent-watch-hook.js \
+  --gateway http://localhost:3000 \
+  --user local-user \
+  --session test-session \
+  --approve-timeout 20 \
+  <<< '{"tool_name":"Bash","command":"rm -rf /tmp/test","cwd":"/"}'
+
+# 4) Dashboard 操作：http://localhost:3000/dashboard
+```
+
+> 当前仓库未内置 Jest/Vitest 套件（早期 `tests/` 目录已移除，避免文档与代码不一致）。
+> 如需补充自动化测试，建议在 `packages/gateway/tests/` 下新建并通过 `vitest` 运行。
 
 ---
 
@@ -294,44 +293,43 @@ export type PushServiceType = 'feishu';
 ## 八、常用命令
 
 ```bash
-# === 开发 ===
-cd "d:\Desktop\watch agent\agent-watch-approve"
-pnpm install
-pnpm dev
+# === 仓库根目录 ===
+pnpm install                  # 安装依赖（--no-frozen-lockfile 可忽略锁文件版本检查）
+pnpm build                    # 一键构建 shared + cli + gateway + dashboard
+pnpm typecheck                # 全量类型检查
 
 # === Gateway ===
 cd packages/gateway
-pnpm dev                    # tsx watch 模式
-npx tsc                     # 编译
-node dist/index.js          # 运行编译后的版本
-npx jest tests/e2e/feishu-mock-e2e.test.ts  # 飞书 mock E2E
+pnpm dev                      # tsx watch 模式
+pnpm build                    # 编译到 dist/
+node dist/index.js            # 运行编译后的版本
 
 # === CLI ===
 cd packages/cli
-node agent-watch.js approve --gateway=http://localhost:3000 --user=<userId> --tool=bash --command="npm install express"
+pnpm build                    # 编译 TS → dist/
+pnpm --filter @agent-watch/cli link --global  # 链接到 PATH（首次）
+agentapprove install          # 写 Claude Code / Cursor hook
+node bin/e2e-verify.js        # 离线 E2E（不需要 Gateway）
+
+# 真实触发审批：
+node bin/agent-watch-hook.js \
+  --gateway http://localhost:3000 \
+  --user local-user --session test-session \
+  --approve-timeout 20 \
+  <<< '{"tool_name":"Bash","command":"rm -rf /tmp/test","cwd":"/"}'
 
 # === Dashboard ===
 cd packages/dashboard
-npx next build              # 构建
-npx next start -p 3001      # 运行
+pnpm dev                      # http://localhost:3001/dashboard（独立 dev server，热更新）
+pnpm build                    # 输出到 out/，Gateway 启动时自动静态托管到 /dashboard
 
-# === 飞书模块测试 ===
-cd packages/gateway
-npx jest tests/e2e/feishu-mock-e2e.test.ts     # 飞书 mock 端到端
-npx jest tests/agents/chinese-agents.test.ts   # 9 种 Agent 适配器
-npx jest tests/api/watch-mini-e2e.test.ts      # 手表小程序 API
-
-# === CLI 端到端 ===
-cd ../cli
-node bin/e2e-verify.js                        # 5 项核心验证
-
-# === 注入测试审批 ===
-npx tsx src/seed-approvals.ts test-user
-npx tsx scripts/inject-approval.ts <token> <userId>
+# === Docker ===
+docker-compose up -d --build  # 启动 Gateway（含 Dashboard 静态资源）
+docker-compose logs -f gateway
+docker-compose down
 
 # === 类型检查 ===
-cd packages/gateway && npx tsc --noEmit
-cd packages/dashboard && npx tsc --noEmit
+pnpm typecheck                # turbo 串起所有包的 tsc --noEmit
 ```
 
 ---
@@ -341,11 +339,12 @@ cd packages/dashboard && npx tsc --noEmit
 | 层 | 技术 |
 |----|------|
 | Gateway | Express.js + WebSocket (ws) + TypeScript |
-| Dashboard | Next.js 14 (App Router) + Tailwind CSS + shadcn/ui |
+| Dashboard | Next.js 14 (App Router, 静态导出) + Tailwind CSS |
 | CLI | Node.js + Commander.js + WebSocket |
 | 推送 | 飞书 Open API（**唯一通道**）|
+| 持久化 | JSON 文件（原子写，无外部数据库依赖）|
 | 部署 | Docker + docker-compose |
-| 公网 | 国内：nginx + Let's Encrypt / 海外：Cloudflare Tunnel | 灵活 |
+| 公网 | 国内：nginx + Let's Encrypt / 海外：Cloudflare Tunnel |
 
 ---
 
@@ -366,8 +365,9 @@ cd packages/dashboard && npx tsc --noEmit
 - **一次性 action token**：HMAC-SHA256 签名，30 秒过期，一次使用后作废
 - **飞书签名强制**：`FEISHU_VERIFICATION_TOKEN` 或 `FEISHU_ENCRYPT_KEY` 必须配置
 - **JWT 启动检查**：生产模式强制 32+ 字符强密钥
-- **公网 fail-closed**：检测到 `PUBLIC_URL` 暴露公网但无 `DASHBOARD_PASSWORD` 时拒绝访问
+- **公网 fail-closed**：检测到 `PUBLIC_URL` 暴露公网但无 `ACCESS_PASSWORD` 时拒绝访问
 - **所有 API 鉴权**：除 `/webhook/feishu`（签名）和 `/v1/auth/*`（公开）外全部 401
+- **trust proxy**：生产模式支持 `TRUST_PROXY` 让 rate-limit 拿到真实客户端 IP
 
 ### 新增文件
 
@@ -385,7 +385,8 @@ cd packages/dashboard && npx tsc --noEmit
 | **v2.0** | **2026-06-15** | **删除 mobile/wechat-mini + 文档 v2.0 + 仅 4 个包** |
 | **v2.1** | **2026-06-15** | **安全加固（H1/H2/M1/M3/M5 修复，action token，签名强制）** |
 | **v2.2** | **2026-06-21** | **国内部署支持（nginx + Let's Encrypt，Cloudflare Tunnel 仅适合海外）** |
+| **v2.3** | **2026-07-25** | **JSON 文件原子写持久化 + Next.js 14 静态导出 Dashboard + trust proxy + 文档同步** |
 
 ---
 
-*文档版本: 2.2 | 最后更新: 2026-06-21*
+*文档版本: 2.3 | 最后更新: 2026-07-25*

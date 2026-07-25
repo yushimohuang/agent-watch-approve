@@ -10,11 +10,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { config } from '../../config';
 import { logger } from '../../utils/logger';
 import type { AuthRequest } from '../middleware/auth';
-import { persistUserUpsert } from '../../db/persist';
+import { persistUserUpsert, persistRefreshToken, persistRefreshTokenRevoke } from '../../db/persist';
 
 // In-memory store
 export const users = new Map();
-const refreshTokens = new Map();
+export const refreshTokens = new Map<string, { userId: string; revokedAt: string | null; tokenId: string }>();
 const pairingCodes = new Map();
 
 /**
@@ -217,6 +217,7 @@ export const AuthController = {
 
       // Revoke old token
       storedToken.revokedAt = new Date().toISOString();
+      persistRefreshTokenRevoke();
 
       // Generate new tokens
       const tokens = generateTokens(user);
@@ -503,7 +504,9 @@ function generateTokens(user: any) {
   refreshTokens.set(tokenId, {
     userId: user.id,
     revokedAt: null,
+    tokenId,
   });
+  persistRefreshToken();
 
   return {
     accessToken,
