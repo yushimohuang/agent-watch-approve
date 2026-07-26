@@ -209,12 +209,36 @@ export type WsServerMessageType =
   | 'approval_request'
   | 'approval_response'
   | 'activity'
+  | 'detected_ide_update'
   | 'pong';
 
 export interface WsServerMessage<T = unknown> {
   type: WsServerMessageType;
   payload: T;
   timestamp?: string;
+}
+
+export interface DetectedIde {
+  id: string;
+  name: string;
+  icon: string;
+  processCount: number;
+  hookInstalled: boolean;
+  installHint?: string | null;
+  website?: string;
+}
+
+export interface DetectedHost {
+  hostname: string;
+  platform: string;
+  scannedAt: string;
+  lastSeenAt: string;
+  isOnline: boolean;
+  detectedIDEs: DetectedIde[];
+}
+
+export interface DetectedIdeUpdatePayload {
+  hosts: DetectedHost[];
 }
 
 export interface WsApprovalRequestPayload {

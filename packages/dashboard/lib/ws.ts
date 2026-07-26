@@ -15,6 +15,7 @@ import type {
   WsServerMessage,
   WsApprovalRequestPayload,
   WsApprovalResponsePayload,
+  DetectedIdeUpdatePayload,
   Activity,
 } from './types';
 
@@ -266,4 +267,10 @@ export function isApprovalResponse(
 /** 类型守卫：活动事件 */
 export function isActivity(msg: WsServerMessage): msg is WsServerMessage<Activity> {
   return msg.type === 'activity';
+}
+
+export function isDetectedIdeUpdate(
+  msg: WsServerMessage,
+): msg is WsServerMessage<DetectedIdeUpdatePayload> {
+  return msg.type === 'detected_ide_update';
 }

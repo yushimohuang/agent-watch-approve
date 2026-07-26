@@ -6,6 +6,7 @@ import { useWebSocket, isApprovalRequest, isApprovalResponse, isActivity } from 
 import { toast } from '@/components/ui/sonner';
 import { StatCard } from '@/components/stat-card';
 import { ApprovalCard } from '@/components/approval-card';
+import { DetectedIdePanel } from '@/components/detected-ide-panel';
 import { EmptyState, ErrorState } from '@/components/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -188,6 +189,9 @@ export default function OverviewPage() {
           loading={loading}
         />
       </div>
+
+      {/* 本机检测到的 AI 编程工具 */}
+      <DetectedIdePanel />
 
       {/* 主体两栏 */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

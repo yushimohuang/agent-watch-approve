@@ -25,6 +25,7 @@ import { WebSocketHandler } from './websocket/handler';
 import { HealthController } from './api/controllers/health';
 import { unifiedPushService } from './notification/unified-push.service';
 import { setBroadcastToUser } from './api/controllers/approvals';
+import { setDetectedIdeBroadcaster } from './api/controllers/devices';
 import { ensureLocalUser, setLocalUserName, refreshTokens } from './api/controllers/auth';
 import { rateLimit } from './api/middleware/rate-limit';
 import { initPersistence } from './db/persistence';
@@ -150,6 +151,11 @@ setBroadcastToUser((userId, message) => {
   wsHandler.broadcastToUser(userId, message);
 });
 logger.info('Approval broadcaster registered (broadcastToUser)');
+
+setDetectedIdeBroadcaster((userId, message) => {
+  wsHandler.broadcastToUser(userId, message);
+});
+logger.info('Detected-IDE broadcaster registered');
 
 // Start server
 const PORT = config.port || 3000;

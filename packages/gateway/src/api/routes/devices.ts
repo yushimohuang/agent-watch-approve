@@ -15,6 +15,10 @@ router.use(AuthMiddleware.requireAuth);
 // List devices
 router.get('/', DevicesController.list);
 
+// Detected IDEs (agent-watch scan reporting)
+router.get('/detected-ides', DevicesController.listDetectedIDEs);
+router.post('/detected-ides', DevicesController.reportDetectedIDEs);
+
 // Get push channel stats for current user
 router.get('/push-stats', async (req: any, res: any) => {
   try {

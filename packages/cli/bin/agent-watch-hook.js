@@ -231,8 +231,10 @@ async function waitForDecisionWS(gatewayUrl, approvalId, token, sessionId, timeo
     resolveOnce = (result) => {
       if (resolve) {
         const r = result;
+        const r2 = resolve;
         resolve = null;
         cleanup();
+        r2(r);
         return r;
       }
     };
