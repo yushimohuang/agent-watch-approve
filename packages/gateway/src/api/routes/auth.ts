@@ -55,7 +55,9 @@ router.post('/logout',
 );
 
 // [v2.1 本地优先] 自动匿名登录（无需密码）
+// [安全] 该端点会签发 JWT，必须限流防止 token 被恶意批量刷取
 router.post('/auto-anonymous',
+  authRateLimit,
   AuthController.autoAnonymous
 );
 
@@ -80,12 +82,14 @@ router.get('/mode',
 );
 
 router.post('/device/pair',
+  authRateLimit,
   body('deviceType').isIn(['android_phone', 'android_watch']),
   validate,
   AuthController.createPairingRequest
 );
 
 router.post('/device/verify',
+  authRateLimit,
   body('pairingCode').isLength({ min: 8, max: 8 }),
   // [v2.1] fcmToken 字段已废弃（飞书单通道后不再使用 FCM）
   // 保留可选 pushToken 字段以兼容旧客户端（实际不再使用）

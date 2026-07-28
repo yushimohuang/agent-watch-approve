@@ -15,6 +15,29 @@ import { unifiedPushService } from '../../notification/unified-push.service';
 export const approvals = new Map();
 const pendingApprovals: string[] = [];
 
+// 内存中审批总数上限：防止长时间运行后 Map 与持久化 state 文件无限增长。
+// 仅淘汰「已决策」的最旧记录（pending 始终保留），不影响进行中的审批与近期历史。
+const MAX_APPROVALS = 5000;
+
+/**
+ * 当审批总数超过上限时，优先淘汰最旧的「已决策」记录。
+ * pending（进行中）审批永不被淘汰，保证进行中的审批一定能查到。
+ * 若已决策记录不足以降到上限（极端并发场景），则不动 pending，避免误删。
+ */
+function enforceApprovalRetention(): void {
+  if (approvals.size <= MAX_APPROVALS) return;
+  const resolved = Array.from(approvals.values())
+    .filter((a) => a.status !== 'pending')
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  const excess = approvals.size - MAX_APPROVALS;
+  for (let i = 0; i < excess && i < resolved.length; i++) {
+    approvals.delete(resolved[i].id);
+  }
+}
+
 /**
  * 用于在审批创建/决策后通过 WebSocket 广播给 Dashboard 和 CLI 的回调
  * 由 src/index.ts 在启动时设置（指向 wsHandler.broadcastToUser）
@@ -444,6 +467,8 @@ export function createApprovalRequest(data: {
   approvals.set(id, approval);
   pendingApprovals.push(id);
   persistApprovalUpsert();
+  // 限制内存中审批总数，避免状态文件无限膨胀
+  enforceApprovalRetention();
 
   // 记录活动日志
   logActivity({

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [18.x, 20.x, 22.x]
 
     steps:
       - uses: actions/checkout@v4
@@ -27,8 +27,18 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
+      # 使用 frozen-lockfile 保证可复现的安装（lockfile 必须随依赖变更一起提交）
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
+      # 先构建 shared，确保其余包的类型检查能解析 @agent-watch/shared 的类型
+      - name: Build shared package
+        run: pnpm --filter @agent-watch/shared build
+
+      # 对所有包含 typecheck 脚本的包做类型检查（shared / gateway / cli / dashboard）
+      - name: Typecheck (all packages)
+        run: pnpm -r --if-present typecheck
+
+      # 构建 Gateway（tsc --build 会按项目引用连带构建 shared）
       - name: Build gateway
-        run: cd packages/gateway && npx tsc --build
+        run: pnpm --filter @agent-watch/gateway build
