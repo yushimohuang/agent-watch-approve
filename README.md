@@ -4,7 +4,7 @@
 
 > ⚡ **零部署成本 · 全平台支持 · 实时响应**
 
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-9+-orange.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-blue.svg)](https://www.typescriptlang.org/)
@@ -463,6 +463,6 @@ pnpm format
 
 ## 📜 License
 
-[CC BY-NC-SA 4.0](LICENSE) - 署名-非商业性使用-相同方式共享 4.0 国际许可协议
+[CC BY-SA 4.0](LICENSE) - 署名-相同方式共享 4.0 国际许可协议
 
-**禁止商业用途**。允许个人学习、研究、修改和分享。
+**允许商业使用**，但必须**注明出处**（署名原作者 [yushimohuang](https://github.com/yushimohuang/agent-watch-approve)），且演绎作品需以相同许可协议共享。
